@@ -1,0 +1,11 @@
+{
+  "name": "@mikyasos/config",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs",
+    "./prettier": "./prettier/index.json",
+    "./typescript/base": "./typescript/base.json"
+  }
+}

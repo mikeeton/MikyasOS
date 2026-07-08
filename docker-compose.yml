@@ -1,0 +1,83 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mikyasos
+      POSTGRES_PASSWORD: mikyasos
+      POSTGRES_DB: mikyasos
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U mikyasos -d mikyasos']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mikyasos
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - mikyasos
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/api.Dockerfile
+    command: npm run start:dev -w @mikyasos/api
+    env_file:
+      - .env.example
+    environment:
+      DATABASE_URL: postgresql://mikyasos:mikyasos@postgres:5432/mikyasos?schema=public
+      REDIS_URL: redis://redis:6379
+    ports:
+      - '3000:3000'
+    volumes:
+      - .:/workspace
+      - api_node_modules:/workspace/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - mikyasos
+
+  web:
+    build:
+      context: .
+      dockerfile: docker/web.Dockerfile
+    command: npm run dev -w @mikyasos/web
+    env_file:
+      - .env.example
+    ports:
+      - '5173:5173'
+    volumes:
+      - .:/workspace
+      - web_node_modules:/workspace/node_modules
+    depends_on:
+      - api
+    networks:
+      - mikyasos
+
+volumes:
+  postgres_data:
+  redis_data:
+  api_node_modules:
+  web_node_modules:
+
+networks:
+  mikyasos:
+    driver: bridge
