@@ -47,6 +47,7 @@ services:
     volumes:
       - .:/workspace
       - api_node_modules:/workspace/node_modules
+      - api_dist:/workspace/apps/api/dist
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,6 +77,7 @@ volumes:
   postgres_data:
   redis_data:
   api_node_modules:
+  api_dist:
   web_node_modules:
 
 networks:
