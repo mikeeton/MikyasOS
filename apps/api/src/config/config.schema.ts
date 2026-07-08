@@ -11,6 +11,7 @@ export const configValidationSchema = Joi.object({
     .required(),
   JWT_SECRET: Joi.string().min(24).required(),
   JWT_EXPIRES_IN: Joi.string().default('15m'),
+  JWT_REFRESH_EXPIRES_IN_DAYS: Joi.number().integer().min(1).max(365).default(30),
   CORS_ORIGIN: Joi.string().default('http://localhost:5173'),
   CLOUDFLARE_R2_ACCOUNT_ID: Joi.string().allow('').optional(),
   CLOUDFLARE_R2_ACCESS_KEY_ID: Joi.string().allow('').optional(),

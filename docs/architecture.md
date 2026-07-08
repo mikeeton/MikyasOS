@@ -48,6 +48,12 @@ No domain tables or feature modules are created yet. Infrastructure boundaries e
 Cloudflare R2 and OpenRouter so later features can attach real adapters without leaking
 vendor details through business modules.
 
+## Identity Platform
+
+Milestone 2 identity details live in [`docs/identity.md`](identity.md). The identity layer
+adds users, organisations, memberships, roles, permissions, invitations, sessions,
+refresh-token rotation, and audit logging without introducing business-feature tables.
+
 ## Local Development
 
 Run the full development environment with:

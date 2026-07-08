@@ -29,6 +29,10 @@ export class AppConfigService {
     return this.config.get<string>('JWT_EXPIRES_IN', '15m');
   }
 
+  get jwtRefreshExpiresInDays() {
+    return this.config.get<number>('JWT_REFRESH_EXPIRES_IN_DAYS', 30);
+  }
+
   get corsOrigin() {
     return this.config.get<string>('CORS_ORIGIN', 'http://localhost:5173');
   }

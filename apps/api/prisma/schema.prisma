@@ -6,3 +6,225 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum OrganisationRoleType {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+  CUSTOM
+}
+
+model User {
+  id                   String               @id @default(uuid()) @db.Uuid
+  email                String               @unique
+  name                 String
+  passwordHash         String
+  status               UserStatus           @default(ACTIVE)
+  activeOrganisationId String?              @db.Uuid
+  lastLoginAt          DateTime?
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  deletedAt            DateTime?
+  memberships          OrganisationMember[]
+  ownedOrganisations   Organisation[]       @relation("OrganisationOwner")
+  invitationsSent      Invitation[]         @relation("InvitationInviter")
+  invitationsAccepted  Invitation[]         @relation("InvitationAcceptedBy")
+  sessions             Session[]
+  refreshTokens        RefreshToken[]
+  auditLogs            AuditLog[]
+  activeOrganisation   Organisation?        @relation("ActiveOrganisation", fields: [activeOrganisationId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([activeOrganisationId])
+  @@index([deletedAt])
+}
+
+model Organisation {
+  id            String               @id @default(uuid()) @db.Uuid
+  name          String
+  slug          String               @unique
+  industry      String?
+  companySize   String?
+  country       String?
+  timezone      String?
+  currency      String?
+  ownerId       String               @db.Uuid
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  deletedAt     DateTime?
+  owner         User                 @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  activeUsers   User[]               @relation("ActiveOrganisation")
+  members       OrganisationMember[]
+  roles         Role[]
+  invitations   Invitation[]
+  sessions      Session[]
+  refreshTokens RefreshToken[]
+  auditLogs     AuditLog[]
+
+  @@index([ownerId])
+  @@index([deletedAt])
+}
+
+model OrganisationMember {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  userId         String               @db.Uuid
+  roleId         String               @db.Uuid
+  roleType       OrganisationRoleType @default(MEMBER)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role           Role                 @relation(fields: [roleId], references: [id], onDelete: Restrict)
+
+  @@unique([organisationId, userId])
+  @@index([userId])
+  @@index([roleId])
+  @@index([organisationId, roleType])
+  @@index([deletedAt])
+}
+
+model Role {
+  id              String               @id @default(uuid()) @db.Uuid
+  organisationId  String               @db.Uuid
+  name            String
+  description     String?
+  type            OrganisationRoleType @default(CUSTOM)
+  isSystem        Boolean              @default(false)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  deletedAt       DateTime?
+  organisation    Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  members         OrganisationMember[]
+  rolePermissions RolePermission[]
+  invitations     Invitation[]
+
+  @@unique([organisationId, name])
+  @@index([organisationId, type])
+  @@index([deletedAt])
+}
+
+model Permission {
+  id              String           @id @default(uuid()) @db.Uuid
+  key             String           @unique
+  description     String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id           String     @id @default(uuid()) @db.Uuid
+  roleId       String     @db.Uuid
+  permissionId String     @db.Uuid
+  createdAt    DateTime   @default(now())
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([permissionId])
+}
+
+model Invitation {
+  id             String           @id @default(uuid()) @db.Uuid
+  organisationId String           @db.Uuid
+  email          String
+  roleId         String           @db.Uuid
+  tokenHash      String           @unique
+  status         InvitationStatus @default(PENDING)
+  invitedById    String           @db.Uuid
+  acceptedById   String?          @db.Uuid
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  revokedAt      DateTime?
+  organisation   Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  role           Role             @relation(fields: [roleId], references: [id], onDelete: Restrict)
+  invitedBy      User             @relation("InvitationInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  acceptedBy     User?            @relation("InvitationAcceptedBy", fields: [acceptedById], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, email, status])
+  @@index([organisationId])
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model Session {
+  id             String         @id @default(uuid()) @db.Uuid
+  userId         String         @db.Uuid
+  organisationId String?        @db.Uuid
+  userAgent      String?
+  ipAddress      String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisation   Organisation?  @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  refreshTokens  RefreshToken[]
+
+  @@index([userId])
+  @@index([organisationId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model RefreshToken {
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String        @db.Uuid
+  organisationId String?       @db.Uuid
+  sessionId      String        @db.Uuid
+  tokenHash      String        @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  expiresAt      DateTime
+  revokedAt      DateTime?
+  replacedById   String?       @unique @db.Uuid
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  session        Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  replacedBy     RefreshToken? @relation("RefreshTokenRotation", fields: [replacedById], references: [id], onDelete: SetNull)
+  replaces       RefreshToken? @relation("RefreshTokenRotation")
+
+  @@index([userId])
+  @@index([sessionId])
+  @@index([organisationId])
+  @@index([expiresAt])
+  @@index([revokedAt])
+}
+
+model AuditLog {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String?       @db.Uuid
+  actorUserId    String?       @db.Uuid
+  action         String
+  entityType     String
+  entityId       String?
+  metadata       Json?
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime      @default(now())
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: SetNull)
+  actorUser      User?         @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, createdAt])
+  @@index([actorUserId])
+  @@index([action])
+}
