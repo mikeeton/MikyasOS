@@ -11,6 +11,20 @@ export const DEFAULT_PERMISSIONS = [
   'crm:read',
   'crm:write',
   'crm:delete',
+  'Project.Create',
+  'Project.Read',
+  'Project.Update',
+  'Project.Delete',
+  'Task.Create',
+  'Task.Update',
+  'Task.Assign',
+  'Task.Delete',
+  'Comments.Create',
+  'Comments.Delete',
+  'Files.Upload',
+  'Files.Delete',
+  'Milestones.Manage',
+  'TimeTracking.Manage',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

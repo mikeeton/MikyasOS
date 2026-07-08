@@ -10,7 +10,7 @@ import { AuthLayout } from './auth-layout';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { accessToken, setAuth } = useAuthStore();
+  const { accessToken, user, setAuth } = useAuthStore();
   const mutation = useMutation({
     mutationFn: identityApi.login,
     onSuccess: (response) => {
@@ -20,7 +20,7 @@ export function LoginPage() {
   });
 
   if (accessToken) {
-    return <Navigate to="/app" replace />;
+    return <Navigate to={user?.activeOrganisationId ? '/app' : '/onboarding'} replace />;
   }
 
   return (

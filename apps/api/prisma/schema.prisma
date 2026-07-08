@@ -81,6 +81,62 @@ enum CustomerActivityType {
   CUSTOMER_EDITED
 }
 
+enum ProjectStatus {
+  PLANNED
+  ACTIVE
+  ON_HOLD
+  COMPLETED
+  ARCHIVED
+}
+
+enum ProjectPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  BLOCKED
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MilestoneStatus {
+  PLANNED
+  ACTIVE
+  COMPLETED
+  MISSED
+}
+
+enum ProjectActivityType {
+  PROJECT_CREATED
+  PROJECT_UPDATED
+  PROJECT_ARCHIVED
+  PROJECT_RESTORED
+  TASK_CREATED
+  TASK_UPDATED
+  TASK_MOVED
+  TASK_ASSIGNED
+  TASK_COMPLETED
+  COMMENT_ADDED
+  FILE_UPLOADED
+  MILESTONE_UPDATED
+  STATUS_CHANGED
+  LABEL_CHANGED
+  TIME_TRACKED
+}
+
 model User {
   id                   String               @id @default(uuid()) @db.Uuid
   email                String               @unique
@@ -104,6 +160,13 @@ model User {
   customerNotes        CustomerNote[]       @relation("CustomerNoteAuthor")
   customerFiles        CustomerFile[]       @relation("CustomerFileUploader")
   customerActivities   CustomerActivity[]   @relation("CustomerActivityActor")
+  ownedProjects        Project[]            @relation("ProjectOwner")
+  assignedTasks        Task[]               @relation("TaskAssignee")
+  reportedTasks        Task[]               @relation("TaskReporter")
+  projectComments      ProjectComment[]     @relation("ProjectCommentAuthor")
+  projectFiles         ProjectFile[]        @relation("ProjectFileUploader")
+  timeEntries          TimeEntry[]          @relation("TimeEntryUser")
+  projectActivities    ProjectActivity[]    @relation("ProjectActivityActor")
   activeOrganisation   Organisation?        @relation("ActiveOrganisation", fields: [activeOrganisationId], references: [id], onDelete: SetNull)
 
   @@index([status])
@@ -112,34 +175,42 @@ model User {
 }
 
 model Organisation {
-  id            String               @id @default(uuid()) @db.Uuid
-  name          String
-  slug          String               @unique
-  industry      String?
-  companySize   String?
-  country       String?
-  timezone      String?
-  currency      String?
-  ownerId       String               @db.Uuid
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  deletedAt     DateTime?
-  owner         User                 @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  activeUsers   User[]               @relation("ActiveOrganisation")
-  members       OrganisationMember[]
-  roles         Role[]
-  invitations   Invitation[]
-  sessions      Session[]
-  refreshTokens RefreshToken[]
-  auditLogs     AuditLog[]
-  companies     Company[]
-  contacts      Contact[]
-  leads         Lead[]
-  opportunities Opportunity[]
-  customerNotes CustomerNote[]
-  customerFiles CustomerFile[]
-  customerTags  CustomerTag[]
-  activities    CustomerActivity[]
+  id                String               @id @default(uuid()) @db.Uuid
+  name              String
+  slug              String               @unique
+  industry          String?
+  companySize       String?
+  country           String?
+  timezone          String?
+  currency          String?
+  ownerId           String               @db.Uuid
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  deletedAt         DateTime?
+  owner             User                 @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  activeUsers       User[]               @relation("ActiveOrganisation")
+  members           OrganisationMember[]
+  roles             Role[]
+  invitations       Invitation[]
+  sessions          Session[]
+  refreshTokens     RefreshToken[]
+  auditLogs         AuditLog[]
+  companies         Company[]
+  contacts          Contact[]
+  leads             Lead[]
+  opportunities     Opportunity[]
+  customerNotes     CustomerNote[]
+  customerFiles     CustomerFile[]
+  customerTags      CustomerTag[]
+  activities        CustomerActivity[]
+  projects          Project[]
+  tasks             Task[]
+  projectLabels     ProjectLabel[]
+  projectFiles      ProjectFile[]
+  timeEntries       TimeEntry[]
+  projectBoards     ProjectBoard[]
+  projectActivities ProjectActivity[]
+  projectComments   ProjectComment[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -323,6 +394,7 @@ model Company {
   files          CustomerFile[]
   activities     CustomerActivity[]
   tags           CompanyTag[]
+  projects       Project[]
 
   @@index([organisationId, name])
   @@index([organisationId, status])
@@ -521,4 +593,272 @@ model CompanyTag {
 
   @@unique([companyId, tagId])
   @@index([tagId])
+}
+
+model Project {
+  id             String             @id @default(uuid()) @db.Uuid
+  organisationId String             @db.Uuid
+  companyId      String?            @db.Uuid
+  ownerId        String             @db.Uuid
+  name           String
+  description    String?
+  status         ProjectStatus      @default(PLANNED)
+  priority       ProjectPriority    @default(MEDIUM)
+  progress       Int                @default(0)
+  budget         Decimal?           @db.Decimal(14, 2)
+  estimatedHours Decimal?           @db.Decimal(10, 2)
+  actualHours    Decimal?           @db.Decimal(10, 2)
+  startDate      DateTime?
+  dueDate        DateTime?
+  completedAt    DateTime?
+  archivedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company        Company?           @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  owner          User               @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  tasks          Task[]
+  milestones     ProjectMilestone[]
+  comments       ProjectComment[]
+  files          ProjectFile[]
+  boards         ProjectBoard[]
+  activities     ProjectActivity[]
+
+  @@index([organisationId, name])
+  @@index([organisationId, companyId])
+  @@index([organisationId, ownerId])
+  @@index([organisationId, status])
+  @@index([organisationId, priority])
+  @@index([organisationId, dueDate])
+  @@index([organisationId, archivedAt])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model Task {
+  id             String            @id @default(uuid()) @db.Uuid
+  organisationId String            @db.Uuid
+  projectId      String            @db.Uuid
+  parentTaskId   String?           @db.Uuid
+  title          String
+  description    String?
+  status         TaskStatus        @default(TODO)
+  priority       TaskPriority      @default(MEDIUM)
+  assigneeId     String?           @db.Uuid
+  reporterId     String?           @db.Uuid
+  estimatedHours Decimal?          @db.Decimal(10, 2)
+  actualHours    Decimal?          @db.Decimal(10, 2)
+  dueDate        DateTime?
+  position       Int               @default(0)
+  completedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project        Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  parentTask     Task?             @relation("TaskSubtasks", fields: [parentTaskId], references: [id], onDelete: SetNull)
+  subtasks       Task[]            @relation("TaskSubtasks")
+  assignee       User?             @relation("TaskAssignee", fields: [assigneeId], references: [id], onDelete: SetNull)
+  reporter       User?             @relation("TaskReporter", fields: [reporterId], references: [id], onDelete: SetNull)
+  comments       ProjectComment[]
+  files          ProjectFile[]
+  labels         TaskLabel[]
+  timeEntries    TimeEntry[]
+  activities     ProjectActivity[]
+
+  @@index([organisationId, projectId])
+  @@index([organisationId, parentTaskId])
+  @@index([organisationId, assigneeId])
+  @@index([organisationId, reporterId])
+  @@index([organisationId, status])
+  @@index([organisationId, priority])
+  @@index([organisationId, dueDate])
+  @@index([organisationId, position])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model ProjectMilestone {
+  id          String            @id @default(uuid()) @db.Uuid
+  projectId   String            @db.Uuid
+  title       String
+  description String?
+  dueDate     DateTime?
+  status      MilestoneStatus   @default(PLANNED)
+  progress    Int               @default(0)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  deletedAt   DateTime?
+  project     Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  activities  ProjectActivity[]
+
+  @@index([projectId, status])
+  @@index([projectId, dueDate])
+  @@index([projectId, deletedAt])
+}
+
+model ProjectLabel {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  name           String
+  colour         String       @default("#111827")
+  icon           String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  tasks          TaskLabel[]
+
+  @@unique([organisationId, name])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model TaskLabel {
+  id        String       @id @default(uuid()) @db.Uuid
+  taskId    String       @db.Uuid
+  labelId   String       @db.Uuid
+  createdAt DateTime     @default(now())
+  task      Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  label     ProjectLabel @relation(fields: [labelId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, labelId])
+  @@index([labelId])
+}
+
+model ProjectComment {
+  id              String           @id @default(uuid()) @db.Uuid
+  organisationId  String           @db.Uuid
+  projectId       String           @db.Uuid
+  taskId          String?          @db.Uuid
+  parentCommentId String?          @db.Uuid
+  authorId        String?          @db.Uuid
+  content         String
+  mentions        Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  organisation    Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project         Project          @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task            Task?            @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  parentComment   ProjectComment?  @relation("ProjectCommentReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies         ProjectComment[] @relation("ProjectCommentReplies")
+  author          User?            @relation("ProjectCommentAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  files           ProjectFile[]
+
+  @@index([organisationId, projectId, createdAt])
+  @@index([organisationId, taskId, createdAt])
+  @@index([organisationId, parentCommentId])
+  @@index([organisationId, authorId])
+  @@index([organisationId, deletedAt])
+}
+
+model ProjectFile {
+  id               String          @id @default(uuid()) @db.Uuid
+  organisationId   String          @db.Uuid
+  projectId        String          @db.Uuid
+  taskId           String?         @db.Uuid
+  commentId        String?         @db.Uuid
+  storageKey       String
+  originalFilename String
+  mimeType         String
+  fileSize         Int
+  uploadedById     String?         @db.Uuid
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  deletedAt        DateTime?
+  organisation     Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project          Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task             Task?           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  comment          ProjectComment? @relation(fields: [commentId], references: [id], onDelete: SetNull)
+  uploadedBy       User?           @relation("ProjectFileUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, storageKey])
+  @@index([organisationId, projectId])
+  @@index([organisationId, taskId])
+  @@index([organisationId, commentId])
+  @@index([organisationId, uploadedById])
+  @@index([organisationId, mimeType])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model TimeEntry {
+  id              String       @id @default(uuid()) @db.Uuid
+  organisationId  String       @db.Uuid
+  taskId          String       @db.Uuid
+  userId          String       @db.Uuid
+  startTime       DateTime
+  endTime         DateTime?
+  durationMinutes Int?
+  manualEntry     Boolean      @default(false)
+  description     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  deletedAt       DateTime?
+  organisation    Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  task            Task         @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user            User         @relation("TimeEntryUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, taskId])
+  @@index([organisationId, userId])
+  @@index([organisationId, startTime])
+  @@index([organisationId, deletedAt])
+}
+
+model ProjectBoard {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  projectId      String               @db.Uuid
+  name           String
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project        Project              @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  columns        ProjectBoardColumn[]
+
+  @@unique([projectId, name])
+  @@index([organisationId, projectId])
+  @@index([organisationId, deletedAt])
+}
+
+model ProjectBoardColumn {
+  id        String       @id @default(uuid()) @db.Uuid
+  boardId   String       @db.Uuid
+  name      String
+  status    TaskStatus?
+  position  Int          @default(0)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  board     ProjectBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId, position])
+}
+
+model ProjectActivity {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String              @db.Uuid
+  projectId      String              @db.Uuid
+  taskId         String?             @db.Uuid
+  milestoneId    String?             @db.Uuid
+  actorUserId    String?             @db.Uuid
+  type           ProjectActivityType
+  title          String
+  description    String?
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project        Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  task           Task?               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  milestone      ProjectMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: Cascade)
+  actorUser      User?               @relation("ProjectActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, projectId, createdAt])
+  @@index([organisationId, taskId, createdAt])
+  @@index([organisationId, milestoneId, createdAt])
+  @@index([organisationId, actorUserId])
+  @@index([organisationId, type])
+  @@index([organisationId, createdAt])
 }

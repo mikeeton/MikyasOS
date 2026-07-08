@@ -14,6 +14,7 @@ import { StorageModule } from './infra/storage/storage.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { ProjectsModule } from './projects/projects.module';
 import { RolesModule } from './roles/roles.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { UsersModule } from './users/users.module';
@@ -50,6 +51,7 @@ import { UsersModule } from './users/users.module';
     RolesModule,
     PermissionsModule,
     CrmModule,
+    ProjectsModule,
     InvitationsModule,
     SessionsModule,
     HealthModule,

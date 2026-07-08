@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { crmApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/query-client';
+import { omitBlankValues } from '../components/crm-form-values';
 import { CrmErrorState, CrmShell, CrmSkeleton } from '../components/crm-shell';
 import { useCrmContext } from '../hooks/use-crm-context';
 
@@ -47,7 +48,7 @@ export function ContactFormPage({ mode }: { mode: 'create' | 'edit' }) {
   });
   const mutation = useMutation({
     mutationFn: (values: ContactFormValues) => {
-      const body = { ...values, companyId: values.companyId || undefined };
+      const body = omitBlankValues(values);
       return mode === 'edit' && id
         ? crmApi.updateContact(token!, organisationId!, id, body)
         : crmApi.createContact(token!, organisationId!, body);

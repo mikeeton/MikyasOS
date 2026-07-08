@@ -69,6 +69,13 @@ organisation-owned companies, contacts, leads, opportunities, notes, file metada
 activity timelines, and CRM search through repository-backed NestJS modules. Frontend CRM
 pages are intentionally reserved for Milestone 4 Part 2.
 
+## Projects & Work Management
+
+Milestone 5 backend details live in [`docs/projects.md`](projects.md). The projects layer
+adds organisation-owned projects, tasks, nested subtasks, boards, milestones, comments,
+labels, file metadata, activity timelines, time tracking, workload overview, and project
+search without adding frontend project pages yet.
+
 ## Local Development
 
 Run the full development environment with:

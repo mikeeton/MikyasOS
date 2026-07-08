@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { crmApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/query-client';
+import { omitBlankValues } from '../components/crm-form-values';
 import { CrmErrorState, CrmShell, CrmSkeleton } from '../components/crm-shell';
 import { useCrmContext } from '../hooks/use-crm-context';
 
@@ -45,10 +46,12 @@ export function CompanyFormPage({ mode }: { mode: 'create' | 'edit' }) {
     defaultValues: { name: '', status: 'PROSPECT' },
   });
   const mutation = useMutation({
-    mutationFn: (values: CompanyFormValues) =>
-      mode === 'edit' && id
-        ? crmApi.updateCompany(token!, organisationId!, id, values)
-        : crmApi.createCompany(token!, organisationId!, values),
+    mutationFn: (values: CompanyFormValues) => {
+      const body = omitBlankValues(values);
+      return mode === 'edit' && id
+        ? crmApi.updateCompany(token!, organisationId!, id, body)
+        : crmApi.createCompany(token!, organisationId!, body);
+    },
     onSuccess: (saved) => {
       void queryClient.invalidateQueries({ queryKey: ['crm', 'companies'] });
       void navigate(`/app/crm/companies/${saved.id}`);
