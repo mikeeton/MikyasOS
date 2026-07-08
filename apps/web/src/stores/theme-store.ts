@@ -1,34 +1,58 @@
 import { create } from 'zustand';
 
-type Theme = 'light' | 'dark';
+export type ThemePreference = 'light' | 'dark' | 'system';
 
 type ThemeStore = {
-  theme: Theme;
+  theme: ThemePreference;
+  resolvedTheme: 'light' | 'dark';
+  setTheme: (theme: ThemePreference) => void;
   toggleTheme: () => void;
 };
 
-const getInitialTheme = (): Theme => {
-  if (typeof window === 'undefined') {
-    return 'light';
+const storageKey = 'mikyasos.theme';
+
+const getSystemTheme = () =>
+  typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: dark)').matches
+    ? 'dark'
+    : 'light';
+
+const applyTheme = (theme: ThemePreference) => {
+  const resolvedTheme = theme === 'system' ? getSystemTheme() : theme;
+
+  if (typeof document !== 'undefined') {
+    document.documentElement.classList.toggle('dark', resolvedTheme === 'dark');
   }
 
-  const stored = window.localStorage.getItem('theme');
-  if (stored === 'light' || stored === 'dark') {
-    document.documentElement.classList.toggle('dark', stored === 'dark');
+  return resolvedTheme;
+};
+
+const getInitialTheme = (): ThemePreference => {
+  if (typeof window === 'undefined') {
+    return 'system';
+  }
+
+  const stored = window.localStorage.getItem(storageKey);
+  if (stored === 'light' || stored === 'dark' || stored === 'system') {
+    applyTheme(stored);
     return stored;
   }
 
-  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-  document.documentElement.classList.toggle('dark', prefersDark);
-  return prefersDark ? 'dark' : 'light';
+  applyTheme('system');
+  return 'system';
 };
 
+const initialTheme = getInitialTheme();
+
 export const useThemeStore = create<ThemeStore>((set, get) => ({
-  theme: getInitialTheme(),
+  theme: initialTheme,
+  resolvedTheme: applyTheme(initialTheme),
+  setTheme: (theme) => {
+    const resolvedTheme = applyTheme(theme);
+    window.localStorage.setItem(storageKey, theme);
+    set({ theme, resolvedTheme });
+  },
   toggleTheme: () => {
-    const nextTheme = get().theme === 'dark' ? 'light' : 'dark';
-    document.documentElement.classList.toggle('dark', nextTheme === 'dark');
-    window.localStorage.setItem('theme', nextTheme);
-    set({ theme: nextTheme });
+    const nextTheme = get().resolvedTheme === 'dark' ? 'light' : 'dark';
+    get().setTheme(nextTheme);
   },
 }));

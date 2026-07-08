@@ -54,6 +54,21 @@ Milestone 2 identity details live in [`docs/identity.md`](identity.md). The iden
 adds users, organisations, memberships, roles, permissions, invitations, sessions,
 refresh-token rotation, and audit logging without introducing business-feature tables.
 
+## Workspace Shell
+
+Milestone 3 workspace details live in [`docs/workspace.md`](workspace.md). The workspace
+layer adds the permanent authenticated layout, config-driven navigation, command palette,
+global search UI, organisation switcher, notification centre, user menu, theme preferences,
+and workspace context without introducing CRM, Projects, AI chat, Finance, or other
+business modules.
+
+## CRM Core
+
+Milestone 4 CRM backend details live in [`docs/crm.md`](crm.md). The CRM layer adds
+organisation-owned companies, contacts, leads, opportunities, notes, file metadata, tags,
+activity timelines, and CRM search through repository-backed NestJS modules. Frontend CRM
+pages are intentionally reserved for Milestone 4 Part 2.
+
 ## Local Development
 
 Run the full development environment with:

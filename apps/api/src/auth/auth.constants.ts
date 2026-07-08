@@ -8,6 +8,9 @@ export const DEFAULT_PERMISSIONS = [
   'members:manage',
   'roles:assign',
   'permissions:read',
+  'crm:read',
+  'crm:write',
+  'crm:delete',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

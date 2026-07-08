@@ -29,6 +29,58 @@ enum OrganisationRoleType {
   CUSTOM
 }
 
+enum CompanyStatus {
+  PROSPECT
+  ACTIVE
+  INACTIVE
+  CUSTOMER
+  PARTNER
+  SUPPLIER
+  ARCHIVED
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  UNQUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum OpportunityStage {
+  DISCOVERY
+  QUALIFICATION
+  PROPOSAL
+  NEGOTIATION
+  WON
+  LOST
+}
+
+enum OpportunityStatus {
+  OPEN
+  WON
+  LOST
+  ARCHIVED
+}
+
+enum CustomerActivityType {
+  COMPANY_CREATED
+  COMPANY_UPDATED
+  CONTACT_ADDED
+  LEAD_CREATED
+  LEAD_UPDATED
+  LEAD_CONVERTED
+  OPPORTUNITY_CREATED
+  OPPORTUNITY_UPDATED
+  OPPORTUNITY_WON
+  OPPORTUNITY_LOST
+  NOTE_ADDED
+  FILE_UPLOADED
+  TAG_CHANGED
+  CUSTOMER_EDITED
+}
+
 model User {
   id                   String               @id @default(uuid()) @db.Uuid
   email                String               @unique
@@ -47,6 +99,11 @@ model User {
   sessions             Session[]
   refreshTokens        RefreshToken[]
   auditLogs            AuditLog[]
+  assignedLeads        Lead[]               @relation("LeadAssignee")
+  ownedOpportunities   Opportunity[]        @relation("OpportunityOwner")
+  customerNotes        CustomerNote[]       @relation("CustomerNoteAuthor")
+  customerFiles        CustomerFile[]       @relation("CustomerFileUploader")
+  customerActivities   CustomerActivity[]   @relation("CustomerActivityActor")
   activeOrganisation   Organisation?        @relation("ActiveOrganisation", fields: [activeOrganisationId], references: [id], onDelete: SetNull)
 
   @@index([status])
@@ -75,6 +132,14 @@ model Organisation {
   sessions      Session[]
   refreshTokens RefreshToken[]
   auditLogs     AuditLog[]
+  companies     Company[]
+  contacts      Contact[]
+  leads         Lead[]
+  opportunities Opportunity[]
+  customerNotes CustomerNote[]
+  customerFiles CustomerFile[]
+  customerTags  CustomerTag[]
+  activities    CustomerActivity[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -227,4 +292,233 @@ model AuditLog {
   @@index([organisationId, createdAt])
   @@index([actorUserId])
   @@index([action])
+}
+
+model Company {
+  id             String             @id @default(uuid()) @db.Uuid
+  organisationId String             @db.Uuid
+  name           String
+  legalName      String?
+  website        String?
+  email          String?
+  phone          String?
+  industry       String?
+  companySize    String?
+  annualRevenue  Decimal?           @db.Decimal(14, 2)
+  country        String?
+  city           String?
+  address        String?
+  postcode       String?
+  linkedin       String?
+  status         CompanyStatus      @default(PROSPECT)
+  logo           String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  contacts       Contact[]
+  leads          Lead[]
+  opportunities  Opportunity[]
+  notes          CustomerNote[]
+  files          CustomerFile[]
+  activities     CustomerActivity[]
+  tags           CompanyTag[]
+
+  @@index([organisationId, name])
+  @@index([organisationId, status])
+  @@index([organisationId, industry])
+  @@index([organisationId, country])
+  @@index([organisationId, city])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model Contact {
+  id             String             @id @default(uuid()) @db.Uuid
+  organisationId String             @db.Uuid
+  companyId      String?            @db.Uuid
+  firstName      String
+  lastName       String
+  email          String?
+  phone          String?
+  mobile         String?
+  jobTitle       String?
+  department     String?
+  linkedin       String?
+  avatar         String?
+  birthday       DateTime?
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company        Company?           @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  activities     CustomerActivity[]
+  customerNotes  CustomerNote[]
+  files          CustomerFile[]
+
+  @@index([organisationId, companyId])
+  @@index([organisationId, email])
+  @@index([organisationId, firstName, lastName])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model Lead {
+  id                String             @id @default(uuid()) @db.Uuid
+  organisationId    String             @db.Uuid
+  companyId         String?            @db.Uuid
+  assignedTo        String?            @db.Uuid
+  source            String?
+  status            LeadStatus         @default(NEW)
+  probability       Int                @default(0)
+  estimatedValue    Decimal?           @db.Decimal(14, 2)
+  expectedCloseDate DateTime?
+  description       String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  organisation      Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company           Company?           @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  assignee          User?              @relation("LeadAssignee", fields: [assignedTo], references: [id], onDelete: SetNull)
+  activities        CustomerActivity[]
+
+  @@index([organisationId, companyId])
+  @@index([organisationId, assignedTo])
+  @@index([organisationId, status])
+  @@index([organisationId, expectedCloseDate])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model Opportunity {
+  id                String             @id @default(uuid()) @db.Uuid
+  organisationId    String             @db.Uuid
+  companyId         String?            @db.Uuid
+  owner             String?            @db.Uuid
+  stage             OpportunityStage   @default(DISCOVERY)
+  probability       Int                @default(0)
+  estimatedRevenue  Decimal?           @db.Decimal(14, 2)
+  expectedCloseDate DateTime?
+  status            OpportunityStatus  @default(OPEN)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  deletedAt         DateTime?
+  organisation      Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company           Company?           @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  ownerUser         User?              @relation("OpportunityOwner", fields: [owner], references: [id], onDelete: SetNull)
+  activities        CustomerActivity[]
+
+  @@index([organisationId, companyId])
+  @@index([organisationId, owner])
+  @@index([organisationId, stage])
+  @@index([organisationId, status])
+  @@index([organisationId, expectedCloseDate])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model CustomerNote {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  companyId      String?      @db.Uuid
+  contactId      String?      @db.Uuid
+  authorId       String?      @db.Uuid
+  content        String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company        Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact        Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  author         User?        @relation("CustomerNoteAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, companyId])
+  @@index([organisationId, contactId])
+  @@index([organisationId, authorId])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model CustomerFile {
+  id               String       @id @default(uuid()) @db.Uuid
+  organisationId   String       @db.Uuid
+  companyId        String?      @db.Uuid
+  contactId        String?      @db.Uuid
+  originalFilename String
+  storageKey       String
+  mimeType         String
+  fileSize         Int
+  uploadedById     String?      @db.Uuid
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  deletedAt        DateTime?
+  organisation     Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company          Company?     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact          Contact?     @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  uploadedBy       User?        @relation("CustomerFileUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, storageKey])
+  @@index([organisationId, companyId])
+  @@index([organisationId, contactId])
+  @@index([organisationId, uploadedById])
+  @@index([organisationId, mimeType])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model CustomerActivity {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  companyId      String?              @db.Uuid
+  contactId      String?              @db.Uuid
+  leadId         String?              @db.Uuid
+  opportunityId  String?              @db.Uuid
+  actorUserId    String?              @db.Uuid
+  type           CustomerActivityType
+  title          String
+  description    String?
+  metadata       Json?
+  createdAt      DateTime             @default(now())
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  company        Company?             @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  contact        Contact?             @relation(fields: [contactId], references: [id], onDelete: Cascade)
+  lead           Lead?                @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  opportunity    Opportunity?         @relation(fields: [opportunityId], references: [id], onDelete: Cascade)
+  actorUser      User?                @relation("CustomerActivityActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, companyId, createdAt])
+  @@index([organisationId, contactId, createdAt])
+  @@index([organisationId, leadId, createdAt])
+  @@index([organisationId, opportunityId, createdAt])
+  @@index([organisationId, type])
+  @@index([organisationId, createdAt])
+}
+
+model CustomerTag {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  name           String
+  color          String       @default("#111827")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  companies      CompanyTag[]
+
+  @@unique([organisationId, name])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model CompanyTag {
+  id        String      @id @default(uuid()) @db.Uuid
+  companyId String      @db.Uuid
+  tagId     String      @db.Uuid
+  createdAt DateTime    @default(now())
+  company   Company     @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  tag       CustomerTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, tagId])
+  @@index([tagId])
 }

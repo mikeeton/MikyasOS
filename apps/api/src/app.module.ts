@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './auth/auth.module';
 import { AppConfigModule } from './config/app-config.module';
 import { AppConfigService } from './config/app-config.service';
+import { CrmModule } from './crm/crm.module';
 import { HealthModule } from './health/health.module';
 import { AiModule } from './infra/ai/ai.module';
 import { DatabaseModule } from './infra/database/database.module';
@@ -48,6 +49,7 @@ import { UsersModule } from './users/users.module';
     OrganisationsModule,
     RolesModule,
     PermissionsModule,
+    CrmModule,
     InvitationsModule,
     SessionsModule,
     HealthModule,
