@@ -50,7 +50,7 @@ export const workspaceNavigation: NavigationItem[] = [
   },
   {
     title: 'Tasks',
-    route: '/app/projects/list',
+    route: '/app/tasks',
     icon: Target,
     permission: 'tasks.read',
     featureFlag: 'tasks',

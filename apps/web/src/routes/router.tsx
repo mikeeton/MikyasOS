@@ -132,6 +132,11 @@ const TaskDetailPage = lazy(() =>
     default: module.TaskDetailPage,
   })),
 );
+const TasksPage = lazy(() =>
+  import('@/features/projects/pages/tasks-page').then((module) => ({
+    default: module.TasksPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -290,6 +295,10 @@ export const router = createBrowserRouter([
           {
             path: 'projects/:id/workload',
             element: withSuspense(<ProjectWorkloadPage />),
+          },
+          {
+            path: 'tasks',
+            element: withSuspense(<TasksPage />),
           },
           {
             path: 'tasks/:id',

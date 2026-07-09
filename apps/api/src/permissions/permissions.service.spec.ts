@@ -35,4 +35,34 @@ describe('PermissionsService', () => {
       false,
     );
   });
+
+  it('backfills default permissions for existing system member roles', async () => {
+    const prisma = {
+      organisationMember: {
+        findFirst: jest.fn().mockResolvedValue({
+          role: {
+            id: 'role-id',
+            type: 'MEMBER',
+            isSystem: true,
+            rolePermissions: [{ permission: { key: 'organisation:read' } }],
+          },
+        }),
+      },
+      permission: {
+        upsert: jest.fn().mockResolvedValue({}),
+        findMany: jest.fn().mockResolvedValue([{ id: 'permission-id' }]),
+      },
+      rolePermission: {
+        createMany: jest.fn().mockResolvedValue({ count: 1 }),
+      },
+    };
+    const service = new PermissionsService(prisma as never);
+
+    await expect(service.userHasPermissions('user-id', 'org-id', ['Project.Read'])).resolves.toBe(
+      true,
+    );
+    expect(prisma.rolePermission.createMany).toHaveBeenCalledWith(
+      expect.objectContaining({ skipDuplicates: true }),
+    );
+  });
 });

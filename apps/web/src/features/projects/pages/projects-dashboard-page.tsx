@@ -92,9 +92,9 @@ export function ProjectsDashboardPage() {
         </>
       }
     >
-      {projects.isLoading || tasks.isLoading ? (
+      {projects.isLoading ? (
         <ProjectSkeleton rows={7} />
-      ) : projects.isError || tasks.isError ? (
+      ) : projects.isError ? (
         <ProjectErrorState
           onRetry={() => {
             void projects.refetch();
@@ -165,6 +165,12 @@ export function ProjectsDashboardPage() {
               tone="success"
             />
           </div>
+          {tasks.isError ? (
+            <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+              Project data loaded, but task metrics could not be refreshed. Retry the page after
+              permissions finish syncing.
+            </p>
+          ) : null}
 
           <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
             <MotionItem className="premium-card p-5">
@@ -236,7 +242,7 @@ export function ProjectsDashboardPage() {
 
           <MotionGroup className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <QuickAction icon={Plus} label="Create Project" to="/app/projects/new" />
-            <QuickAction icon={ListChecks} label="Create Task" to="/app/projects/list" />
+            <QuickAction icon={ListChecks} label="Create Task" to="/app/tasks" />
             <QuickAction
               icon={UsersRound}
               label="Invite Team Member"

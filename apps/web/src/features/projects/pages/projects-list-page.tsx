@@ -46,12 +46,20 @@ export function ProjectsListPage({ archive = false }: { archive?: boolean }) {
       title={archive ? 'Project archive' : 'Project portfolio'}
       description="Switch between strategic cards, dense tables, and compact operational rows."
       actions={
-        <Button asChild>
-          <Link to="/app/projects/new">
-            <Plus className="mr-2 size-4" aria-hidden="true" />
-            Create Project
-          </Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link to="/app/projects">
+              <List className="mr-2 size-4" aria-hidden="true" />
+              Projects Home
+            </Link>
+          </Button>
+          <Button asChild>
+            <Link to="/app/projects/new">
+              <Plus className="mr-2 size-4" aria-hidden="true" />
+              Create Project
+            </Link>
+          </Button>
+        </div>
       }
     >
       <ProjectFilters
