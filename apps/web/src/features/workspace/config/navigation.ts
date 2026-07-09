@@ -47,16 +47,14 @@ export const workspaceNavigation: NavigationItem[] = [
     permission: 'projects.read',
     featureFlag: 'projects',
     keywords: ['delivery', 'work', 'client projects'],
-    disabled: true,
   },
   {
     title: 'Tasks',
-    route: '/app/tasks',
+    route: '/app/projects/list',
     icon: Target,
     permission: 'tasks.read',
     featureFlag: 'tasks',
     keywords: ['todos', 'work queue', 'actions'],
-    disabled: true,
   },
   {
     title: 'Documents',
@@ -134,6 +132,18 @@ export const quickActions: NavigationItem[] = [
     route: '/app/crm/search',
     icon: Sparkles,
     keywords: ['crm', 'customers', 'find'],
+  },
+  {
+    title: 'Create project',
+    route: '/app/projects/new',
+    icon: BriefcaseBusiness,
+    keywords: ['projects', 'delivery', 'work'],
+  },
+  {
+    title: 'Project portfolio',
+    route: '/app/projects/list',
+    icon: Target,
+    keywords: ['projects', 'tasks', 'portfolio'],
   },
   {
     title: 'Create organisation',

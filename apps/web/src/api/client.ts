@@ -50,6 +50,12 @@ export type CrmQuery = {
   sortDirection?: 'asc' | 'desc';
 };
 
+export type WorkQuery = CrmQuery & {
+  priority?: string;
+  projectId?: string;
+  assigneeId?: string;
+};
+
 export type CrmTag = {
   id: string;
   name: string;
@@ -216,6 +222,152 @@ export type CrmPromptTemplates = {
     guardrails: string[];
   }>;
   promptExecutionEnabled: false;
+};
+
+export type Project = {
+  id: string;
+  organisationId: string;
+  companyId?: string | null;
+  ownerId: string;
+  name: string;
+  description?: string | null;
+  status: string;
+  priority: string;
+  progress: number;
+  budget?: string | number | null;
+  estimatedHours?: string | number | null;
+  actualHours?: string | number | null;
+  startDate?: string | null;
+  dueDate?: string | null;
+  completedAt?: string | null;
+  archivedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  company?: Pick<Company, 'id' | 'name'> | null;
+  owner?: Pick<User, 'id' | 'name' | 'email'> | null;
+  tasks?: Task[];
+  milestones?: ProjectMilestone[];
+  files?: ProjectFile[];
+  activities?: ProjectActivity[];
+  _count?: {
+    tasks: number;
+    milestones: number;
+    files: number;
+    comments: number;
+  };
+};
+
+export type Task = {
+  id: string;
+  organisationId: string;
+  projectId: string;
+  parentTaskId?: string | null;
+  title: string;
+  description?: string | null;
+  status: string;
+  priority: string;
+  assigneeId?: string | null;
+  reporterId?: string | null;
+  estimatedHours?: string | number | null;
+  actualHours?: string | number | null;
+  dueDate?: string | null;
+  position: number;
+  completedAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  project?: Pick<Project, 'id' | 'name'> | null;
+  parentTask?: Pick<Task, 'id' | 'title'> | null;
+  subtasks?: Task[];
+  assignee?: Pick<User, 'id' | 'name' | 'email'> | null;
+  reporter?: Pick<User, 'id' | 'name' | 'email'> | null;
+  comments?: ProjectComment[];
+  files?: ProjectFile[];
+  labels?: Array<{ label: ProjectLabel }>;
+  timeEntries?: TimeEntry[];
+  _count?: {
+    comments: number;
+    subtasks: number;
+    files: number;
+  };
+};
+
+export type ProjectMilestone = {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string | null;
+  dueDate?: string | null;
+  status: string;
+  progress: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProjectLabel = {
+  id: string;
+  organisationId: string;
+  name: string;
+  colour: string;
+  icon?: string | null;
+};
+
+export type ProjectComment = {
+  id: string;
+  projectId: string;
+  taskId?: string | null;
+  parentCommentId?: string | null;
+  authorId?: string | null;
+  content: string;
+  mentions?: string[] | null;
+  createdAt: string;
+  updatedAt: string;
+  author?: Pick<User, 'id' | 'name' | 'email'> | null;
+  replies?: ProjectComment[];
+};
+
+export type ProjectFile = {
+  id: string;
+  projectId: string;
+  taskId?: string | null;
+  commentId?: string | null;
+  storageKey: string;
+  originalFilename: string;
+  mimeType: string;
+  fileSize: number;
+  uploadedById?: string | null;
+  createdAt: string;
+  uploadedBy?: Pick<User, 'id' | 'name' | 'email'> | null;
+};
+
+export type TimeEntry = {
+  id: string;
+  taskId: string;
+  userId: string;
+  startTime: string;
+  endTime?: string | null;
+  durationMinutes?: number | null;
+  manualEntry: boolean;
+  description?: string | null;
+};
+
+export type ProjectActivity = {
+  id: string;
+  projectId: string;
+  taskId?: string | null;
+  milestoneId?: string | null;
+  type: string;
+  title: string;
+  description?: string | null;
+  createdAt: string;
+  actorUser?: Pick<User, 'id' | 'name' | 'email'> | null;
+};
+
+export type WorkloadRow = {
+  user: Pick<User, 'id' | 'name' | 'email'>;
+  openTasks: number;
+  estimatedHours: number;
+  capacityStatus: 'available' | 'busy' | 'overloaded';
+  tasks: Task[];
 };
 
 const apiBaseUrl =
@@ -417,4 +569,72 @@ export const crmApi = {
     apiRequest<CrmAiCapabilities>('/crm/ai/capabilities', { token, organisationId }),
   aiPromptTemplates: (token: string, organisationId: string) =>
     apiRequest<CrmPromptTemplates>('/crm/ai/prompt-templates', { token, organisationId }),
+};
+
+export const projectsApi = {
+  projects: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<PaginatedResult<Project>>(`/projects${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  project: (token: string, organisationId: string, id: string) =>
+    apiRequest<Project>(`/projects/${id}`, { token, organisationId }),
+  createProject: (token: string, organisationId: string, body: Partial<Project>) =>
+    apiRequest<Project>('/projects', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  updateProject: (token: string, organisationId: string, id: string, body: Partial<Project>) =>
+    apiRequest<Project>(`/projects/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  archiveProject: (token: string, organisationId: string, id: string) =>
+    apiRequest<Project>(`/projects/${id}/archive`, { method: 'POST', token, organisationId }),
+  tasks: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<PaginatedResult<Task>>(`/tasks${toQueryString(query)}`, { token, organisationId }),
+  task: (token: string, organisationId: string, id: string) =>
+    apiRequest<Task>(`/tasks/${id}`, { token, organisationId }),
+  createTask: (token: string, organisationId: string, body: Partial<Task>) =>
+    apiRequest<Task>('/tasks', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  completeTask: (token: string, organisationId: string, id: string) =>
+    apiRequest<Task>(`/tasks/${id}/complete`, { method: 'POST', token, organisationId }),
+  milestones: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<ProjectMilestone[]>(`/milestones${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  comments: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<ProjectComment[]>(`/comments${toQueryString(query)}`, { token, organisationId }),
+  files: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<ProjectFile[]>(`/project-files${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  activities: (token: string, organisationId: string, query: WorkQuery = {}) =>
+    apiRequest<ProjectActivity[]>(`/project-activities${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  workload: (token: string, organisationId: string) =>
+    apiRequest<WorkloadRow[]>('/workload', { token, organisationId }),
+  search: (token: string, organisationId: string, q: string) =>
+    apiRequest<{
+      query: string;
+      results: {
+        projects: Project[];
+        tasks: Task[];
+        labels: ProjectLabel[];
+        comments: ProjectComment[];
+      };
+    }>(`/project-search?q=${encodeURIComponent(q)}`, { token, organisationId }),
 };

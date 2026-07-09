@@ -77,6 +77,61 @@ const CrmSearchPage = lazy(() =>
     default: module.CrmSearchPage,
   })),
 );
+const ProjectsDashboardPage = lazy(() =>
+  import('@/features/projects/pages/projects-dashboard-page').then((module) => ({
+    default: module.ProjectsDashboardPage,
+  })),
+);
+const ProjectsListPage = lazy(() =>
+  import('@/features/projects/pages/projects-list-page').then((module) => ({
+    default: module.ProjectsListPage,
+  })),
+);
+const ProjectFormPage = lazy(() =>
+  import('@/features/projects/pages/project-form-page').then((module) => ({
+    default: module.ProjectFormPage,
+  })),
+);
+const ProjectDetailPage = lazy(() =>
+  import('@/features/projects/pages/project-detail-page').then((module) => ({
+    default: module.ProjectDetailPage,
+  })),
+);
+const ProjectSettingsPage = lazy(() =>
+  import('@/features/projects/pages/project-settings-page').then((module) => ({
+    default: module.ProjectSettingsPage,
+  })),
+);
+const ProjectBoardPage = lazy(() =>
+  import('@/features/projects/pages/project-views-page').then((module) => ({
+    default: module.ProjectBoardPage,
+  })),
+);
+const ProjectTaskListPage = lazy(() =>
+  import('@/features/projects/pages/project-views-page').then((module) => ({
+    default: module.ProjectTaskListPage,
+  })),
+);
+const ProjectTimelinePage = lazy(() =>
+  import('@/features/projects/pages/project-views-page').then((module) => ({
+    default: module.ProjectTimelinePage,
+  })),
+);
+const ProjectCalendarPage = lazy(() =>
+  import('@/features/projects/pages/project-views-page').then((module) => ({
+    default: module.ProjectCalendarPage,
+  })),
+);
+const ProjectWorkloadPage = lazy(() =>
+  import('@/features/projects/pages/project-views-page').then((module) => ({
+    default: module.ProjectWorkloadPage,
+  })),
+);
+const TaskDetailPage = lazy(() =>
+  import('@/features/projects/pages/task-detail-page').then((module) => ({
+    default: module.TaskDetailPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -191,6 +246,54 @@ export const router = createBrowserRouter([
           {
             path: 'crm/search',
             element: withSuspense(<CrmSearchPage />),
+          },
+          {
+            path: 'projects',
+            element: withSuspense(<ProjectsDashboardPage />),
+          },
+          {
+            path: 'projects/list',
+            element: withSuspense(<ProjectsListPage />),
+          },
+          {
+            path: 'projects/archive',
+            element: withSuspense(<ProjectsListPage archive />),
+          },
+          {
+            path: 'projects/new',
+            element: withSuspense(<ProjectFormPage />),
+          },
+          {
+            path: 'projects/:id',
+            element: withSuspense(<ProjectDetailPage />),
+          },
+          {
+            path: 'projects/:id/settings',
+            element: withSuspense(<ProjectSettingsPage />),
+          },
+          {
+            path: 'projects/:id/board',
+            element: withSuspense(<ProjectBoardPage />),
+          },
+          {
+            path: 'projects/:id/list',
+            element: withSuspense(<ProjectTaskListPage />),
+          },
+          {
+            path: 'projects/:id/timeline',
+            element: withSuspense(<ProjectTimelinePage />),
+          },
+          {
+            path: 'projects/:id/calendar',
+            element: withSuspense(<ProjectCalendarPage />),
+          },
+          {
+            path: 'projects/:id/workload',
+            element: withSuspense(<ProjectWorkloadPage />),
+          },
+          {
+            path: 'tasks/:id',
+            element: withSuspense(<TaskDetailPage />),
           },
         ],
       },
