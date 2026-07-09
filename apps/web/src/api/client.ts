@@ -224,6 +224,36 @@ export type CrmPromptTemplates = {
   promptExecutionEnabled: false;
 };
 
+export type ProjectAiCapabilities = {
+  capabilities: Array<{
+    key: string;
+    name: string;
+    description: string;
+    requiredPermission: string;
+    status: string;
+  }>;
+  provider: {
+    abstraction: string;
+    providerAgnostic: boolean;
+    configured: boolean;
+  };
+  promptExecutionEnabled: false;
+  embeddingsEnabled: false;
+  conversationalAiEnabled: false;
+};
+
+export type ProjectAiPromptTemplates = {
+  templates: Array<{
+    key: string;
+    name: string;
+    purpose: string;
+    systemInstruction: string;
+    userContextFields: string[];
+    guardrails: string[];
+  }>;
+  promptExecutionEnabled: false;
+};
+
 export type Project = {
   id: string;
   organisationId: string;
@@ -681,4 +711,11 @@ export const projectsApi = {
         comments: ProjectComment[];
       };
     }>(`/project-search?q=${encodeURIComponent(q)}`, { token, organisationId }),
+  aiCapabilities: (token: string, organisationId: string) =>
+    apiRequest<ProjectAiCapabilities>('/projects/ai/capabilities', { token, organisationId }),
+  aiPromptTemplates: (token: string, organisationId: string) =>
+    apiRequest<ProjectAiPromptTemplates>('/projects/ai/prompt-templates', {
+      token,
+      organisationId,
+    }),
 };

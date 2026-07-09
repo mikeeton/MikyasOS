@@ -16,6 +16,7 @@ import { Link, useParams } from 'react-router';
 import { projectsApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/query-client';
+import { ProjectAiCards } from '../components/ai/project-ai-cards';
 import { formatDate, formatHours, formatMoney, projectHealth } from '../components/project-format';
 import { projectSpring } from '../components/project-motion-config';
 import { MotionGroup, MotionItem } from '../components/project-motion';
@@ -166,6 +167,7 @@ export function ProjectDetailPage() {
           <ProjectAiPlaceholder title="AI Workspace Placeholder" />
         </aside>
       </MotionGroup>
+      <ProjectAiCards />
     </ProjectShell>
   );
 }

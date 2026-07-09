@@ -5,6 +5,7 @@ import { Link, useParams } from 'react-router';
 
 import { projectsApi, type Task } from '@/api/client';
 import { queryClient } from '@/lib/query-client';
+import { ProjectAiCards } from '../components/ai/project-ai-cards';
 import { formatDate, formatHours } from '../components/project-format';
 import { projectSpring } from '../components/project-motion-config';
 import { MotionGroup, MotionItem } from '../components/project-motion';
@@ -104,6 +105,7 @@ export function ProjectBoardPage() {
         ))}
       </MotionGroup>
       <ProjectAiPlaceholder title="AI board recommendations placeholder" />
+      <ProjectAiCards limit={3} />
     </ProjectShell>
   );
 }

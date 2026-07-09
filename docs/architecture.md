@@ -73,8 +73,21 @@ pages are intentionally reserved for Milestone 4 Part 2.
 
 Milestone 5 backend details live in [`docs/projects.md`](projects.md). The projects layer
 adds organisation-owned projects, tasks, nested subtasks, boards, milestones, comments,
-labels, file metadata, activity timelines, time tracking, workload overview, and project
-search without adding frontend project pages yet.
+labels, file metadata, activity timelines, time tracking, workload overview, project
+search, frontend project workspaces, and architecture-only AI readiness.
+
+## AI Architecture
+
+AI remains provider-agnostic. Business modules depend on the internal `AiModule` boundary
+and expose architecture/capability metadata without executing prompts by default.
+
+CRM has customer AI readiness for future summaries, embeddings, and recommendations.
+Projects has project AI readiness for summaries, task recommendations, risk analysis,
+workload analysis, dependency analysis, knowledge indexing, vector search planning,
+BullMQ background job planning, and future realtime event planning.
+
+No conversational AI is implemented. No embeddings are generated. No module calls Gemini
+or any model provider directly from business logic.
 
 ## Local Development
 

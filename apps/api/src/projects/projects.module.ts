@@ -4,6 +4,7 @@ import { BoardsModule } from './boards/boards.module';
 import { CommentsModule } from './comments/comments.module';
 import { LabelsModule } from './labels/labels.module';
 import { MilestonesModule } from './milestones/milestones.module';
+import { ProjectAiModule } from './ai/project-ai.module';
 import { ProjectActivitiesModule } from './project-activities/project-activities.module';
 import { ProjectFilesModule } from './project-files/project-files.module';
 import { ProjectRecordsModule } from './project-records/project-records.module';
@@ -25,6 +26,7 @@ import { WorkloadModule } from './workload/workload.module';
     ProjectFilesModule,
     WorkloadModule,
     ProjectSearchModule,
+    ProjectAiModule,
   ],
 })
 export class ProjectsModule {}

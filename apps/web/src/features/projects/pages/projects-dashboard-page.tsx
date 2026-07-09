@@ -15,6 +15,7 @@ import { Link } from 'react-router';
 
 import { identityApi, projectsApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
+import { ProjectAiCards } from '../components/ai/project-ai-cards';
 import { formatDate, projectHealth } from '../components/project-format';
 import { projectSpring } from '../components/project-motion-config';
 import { MotionGroup, MotionItem } from '../components/project-motion';
@@ -195,6 +196,8 @@ export function ProjectsDashboardPage() {
               <ProjectAiPlaceholder title="AI Recommendations" />
             </section>
           </div>
+
+          <ProjectAiCards limit={6} />
 
           <div className="grid gap-6 xl:grid-cols-3">
             <MotionItem className="premium-card p-5 xl:col-span-2">
