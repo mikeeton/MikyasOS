@@ -137,6 +137,70 @@ enum ProjectActivityType {
   TIME_TRACKED
 }
 
+enum DocumentType {
+  PDF
+  DOCX
+  XLSX
+  CSV
+  IMAGE
+  TEXT
+  MARKDOWN
+  OTHER
+}
+
+enum DocumentStatus {
+  ACTIVE
+  PROCESSING
+  ARCHIVED
+  DELETED
+}
+
+enum DocumentVisibility {
+  PRIVATE
+  ORGANISATION
+  RESTRICTED
+}
+
+enum DocumentPermissionLevel {
+  VIEW
+  COMMENT
+  EDIT
+  MANAGE
+  OWNER
+}
+
+enum DocumentActivityAction {
+  DOCUMENT_UPLOADED
+  DOCUMENT_VIEWED
+  DOCUMENT_DOWNLOADED
+  DOCUMENT_EDITED
+  DOCUMENT_RENAMED
+  DOCUMENT_MOVED
+  DOCUMENT_DELETED
+  DOCUMENT_RESTORED
+  VERSION_UPLOADED
+  VERSION_RESTORED
+  PERMISSION_CHANGED
+  FOLDER_CREATED
+  FOLDER_RENAMED
+  FOLDER_MOVED
+  FOLDER_DELETED
+  TAG_ADDED
+  TAG_REMOVED
+  DOCUMENT_LINKED
+  DOCUMENT_UNLINKED
+}
+
+enum DocumentLinkEntityType {
+  COMPANY
+  CONTACT
+  PROJECT
+  TASK
+  INVOICE
+  MEETING
+  AUTOMATION
+}
+
 model User {
   id                   String               @id @default(uuid()) @db.Uuid
   email                String               @unique
@@ -167,6 +231,12 @@ model User {
   projectFiles         ProjectFile[]        @relation("ProjectFileUploader")
   timeEntries          TimeEntry[]          @relation("TimeEntryUser")
   projectActivities    ProjectActivity[]    @relation("ProjectActivityActor")
+  ownedFolders         Folder[]             @relation("FolderOwner")
+  ownedDocuments       Document[]           @relation("DocumentOwner")
+  documentVersions     DocumentVersion[]    @relation("DocumentVersionUploader")
+  documentPermissions  DocumentPermission[] @relation("DocumentPermissionUser")
+  documentActivities   DocumentActivity[]   @relation("DocumentActivityActor")
+  documentShares       DocumentShare[]      @relation("DocumentShareCreator")
   activeOrganisation   Organisation?        @relation("ActiveOrganisation", fields: [activeOrganisationId], references: [id], onDelete: SetNull)
 
   @@index([status])
@@ -175,42 +245,50 @@ model User {
 }
 
 model Organisation {
-  id                String               @id @default(uuid()) @db.Uuid
-  name              String
-  slug              String               @unique
-  industry          String?
-  companySize       String?
-  country           String?
-  timezone          String?
-  currency          String?
-  ownerId           String               @db.Uuid
-  createdAt         DateTime             @default(now())
-  updatedAt         DateTime             @updatedAt
-  deletedAt         DateTime?
-  owner             User                 @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  activeUsers       User[]               @relation("ActiveOrganisation")
-  members           OrganisationMember[]
-  roles             Role[]
-  invitations       Invitation[]
-  sessions          Session[]
-  refreshTokens     RefreshToken[]
-  auditLogs         AuditLog[]
-  companies         Company[]
-  contacts          Contact[]
-  leads             Lead[]
-  opportunities     Opportunity[]
-  customerNotes     CustomerNote[]
-  customerFiles     CustomerFile[]
-  customerTags      CustomerTag[]
-  activities        CustomerActivity[]
-  projects          Project[]
-  tasks             Task[]
-  projectLabels     ProjectLabel[]
-  projectFiles      ProjectFile[]
-  timeEntries       TimeEntry[]
-  projectBoards     ProjectBoard[]
-  projectActivities ProjectActivity[]
-  projectComments   ProjectComment[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  name                String
+  slug                String               @unique
+  industry            String?
+  companySize         String?
+  country             String?
+  timezone            String?
+  currency            String?
+  ownerId             String               @db.Uuid
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  owner               User                 @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  activeUsers         User[]               @relation("ActiveOrganisation")
+  members             OrganisationMember[]
+  roles               Role[]
+  invitations         Invitation[]
+  sessions            Session[]
+  refreshTokens       RefreshToken[]
+  auditLogs           AuditLog[]
+  companies           Company[]
+  contacts            Contact[]
+  leads               Lead[]
+  opportunities       Opportunity[]
+  customerNotes       CustomerNote[]
+  customerFiles       CustomerFile[]
+  customerTags        CustomerTag[]
+  activities          CustomerActivity[]
+  projects            Project[]
+  tasks               Task[]
+  projectLabels       ProjectLabel[]
+  projectFiles        ProjectFile[]
+  timeEntries         TimeEntry[]
+  projectBoards       ProjectBoard[]
+  projectActivities   ProjectActivity[]
+  projectComments     ProjectComment[]
+  folders             Folder[]
+  documents           Document[]
+  documentVersions    DocumentVersion[]
+  documentPermissions DocumentPermission[]
+  documentActivities  DocumentActivity[]
+  documentTags        DocumentTag[]
+  documentLinks       DocumentLink[]
+  documentShares      DocumentShare[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -237,19 +315,20 @@ model OrganisationMember {
 }
 
 model Role {
-  id              String               @id @default(uuid()) @db.Uuid
-  organisationId  String               @db.Uuid
-  name            String
-  description     String?
-  type            OrganisationRoleType @default(CUSTOM)
-  isSystem        Boolean              @default(false)
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  deletedAt       DateTime?
-  organisation    Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
-  members         OrganisationMember[]
-  rolePermissions RolePermission[]
-  invitations     Invitation[]
+  id                  String               @id @default(uuid()) @db.Uuid
+  organisationId      String               @db.Uuid
+  name                String
+  description         String?
+  type                OrganisationRoleType @default(CUSTOM)
+  isSystem            Boolean              @default(false)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  deletedAt           DateTime?
+  organisation        Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  members             OrganisationMember[]
+  rolePermissions     RolePermission[]
+  invitations         Invitation[]
+  documentPermissions DocumentPermission[]
 
   @@unique([organisationId, name])
   @@index([organisationId, type])
@@ -861,4 +940,220 @@ model ProjectActivity {
   @@index([organisationId, actorUserId])
   @@index([organisationId, type])
   @@index([organisationId, createdAt])
+}
+
+model Folder {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  parentFolderId String?              @db.Uuid
+  ownerId        String               @db.Uuid
+  name           String
+  description    String?
+  path           String
+  depth          Int                  @default(0)
+  colour         String?
+  icon           String?
+  visibility     DocumentVisibility   @default(ORGANISATION)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  parentFolder   Folder?              @relation("FolderTree", fields: [parentFolderId], references: [id], onDelete: SetNull)
+  childFolders   Folder[]             @relation("FolderTree")
+  owner          User                 @relation("FolderOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  documents      Document[]
+  permissions    DocumentPermission[]
+  activities     DocumentActivity[]
+
+  @@unique([organisationId, parentFolderId, name])
+  @@index([organisationId, parentFolderId])
+  @@index([organisationId, ownerId])
+  @@index([organisationId, path])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model Document {
+  id               String                  @id @default(uuid()) @db.Uuid
+  organisationId   String                  @db.Uuid
+  folderId         String?                 @db.Uuid
+  ownerId          String                  @db.Uuid
+  title            String
+  description      String?
+  fileName         String
+  originalFileName String
+  mimeType         String
+  fileExtension    String
+  fileSize         Int
+  storageKey       String
+  storageBucket    String
+  checksum         String
+  documentType     DocumentType            @default(OTHER)
+  status           DocumentStatus          @default(ACTIVE)
+  visibility       DocumentVisibility      @default(ORGANISATION)
+  isPinned         Boolean                 @default(false)
+  isLocked         Boolean                 @default(false)
+  currentVersionId String?                 @unique @db.Uuid
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+  deletedAt        DateTime?
+  organisation     Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  folder           Folder?                 @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  owner            User                    @relation("DocumentOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  currentVersion   DocumentVersion?        @relation("DocumentCurrentVersion", fields: [currentVersionId], references: [id], onDelete: SetNull)
+  versions         DocumentVersion[]       @relation("DocumentVersions")
+  permissions      DocumentPermission[]
+  activities       DocumentActivity[]
+  tags             DocumentTagAssignment[]
+  links            DocumentLink[]
+  shares           DocumentShare[]
+
+  @@unique([organisationId, storageKey])
+  @@index([organisationId, folderId])
+  @@index([organisationId, ownerId])
+  @@index([organisationId, title])
+  @@index([organisationId, documentType])
+  @@index([organisationId, status])
+  @@index([organisationId, visibility])
+  @@index([organisationId, mimeType])
+  @@index([organisationId, checksum])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+  @@index([organisationId, updatedAt])
+}
+
+model DocumentVersion {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  documentId     String       @db.Uuid
+  versionNumber  Int
+  fileName       String
+  storageKey     String
+  mimeType       String
+  fileSize       Int
+  checksum       String
+  uploadedById   String?      @db.Uuid
+  changeNote     String?
+  createdAt      DateTime     @default(now())
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  document       Document     @relation("DocumentVersions", fields: [documentId], references: [id], onDelete: Cascade)
+  currentFor     Document?    @relation("DocumentCurrentVersion")
+  uploadedBy     User?        @relation("DocumentVersionUploader", fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@unique([documentId, versionNumber])
+  @@unique([organisationId, storageKey])
+  @@index([organisationId, documentId])
+  @@index([organisationId, uploadedById])
+  @@index([organisationId, createdAt])
+}
+
+model DocumentPermission {
+  id              String                  @id @default(uuid()) @db.Uuid
+  organisationId  String                  @db.Uuid
+  documentId      String?                 @db.Uuid
+  folderId        String?                 @db.Uuid
+  userId          String?                 @db.Uuid
+  teamId          String?                 @db.Uuid
+  roleId          String?                 @db.Uuid
+  permissionLevel DocumentPermissionLevel
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  organisation    Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  document        Document?               @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  folder          Folder?                 @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  user            User?                   @relation("DocumentPermissionUser", fields: [userId], references: [id], onDelete: Cascade)
+  role            Role?                   @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, documentId])
+  @@index([organisationId, folderId])
+  @@index([organisationId, userId])
+  @@index([organisationId, teamId])
+  @@index([organisationId, roleId])
+  @@index([organisationId, permissionLevel])
+}
+
+model DocumentActivity {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organisationId String                 @db.Uuid
+  documentId     String?                @db.Uuid
+  folderId       String?                @db.Uuid
+  actorId        String?                @db.Uuid
+  action         DocumentActivityAction
+  metadata       Json?
+  createdAt      DateTime               @default(now())
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  document       Document?              @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  folder         Folder?                @relation(fields: [folderId], references: [id], onDelete: Cascade)
+  actor          User?                  @relation("DocumentActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, documentId, createdAt])
+  @@index([organisationId, folderId, createdAt])
+  @@index([organisationId, actorId])
+  @@index([organisationId, action])
+  @@index([organisationId, createdAt])
+}
+
+model DocumentTag {
+  id             String                  @id @default(uuid()) @db.Uuid
+  organisationId String                  @db.Uuid
+  name           String
+  colour         String                  @default("#111827")
+  description    String?
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  documents      DocumentTagAssignment[]
+
+  @@unique([organisationId, name])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, createdAt])
+}
+
+model DocumentTagAssignment {
+  id             String      @id @default(uuid()) @db.Uuid
+  organisationId String      @db.Uuid
+  documentId     String      @db.Uuid
+  tagId          String      @db.Uuid
+  createdAt      DateTime    @default(now())
+  document       Document    @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  tag            DocumentTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, tagId])
+  @@index([organisationId, documentId])
+  @@index([organisationId, tagId])
+}
+
+model DocumentLink {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organisationId String                 @db.Uuid
+  documentId     String                 @db.Uuid
+  entityType     DocumentLinkEntityType
+  entityId       String                 @db.Uuid
+  createdAt      DateTime               @default(now())
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  document       Document               @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, entityType, entityId])
+  @@index([organisationId, documentId])
+  @@index([organisationId, entityType, entityId])
+  @@index([organisationId, createdAt])
+}
+
+model DocumentShare {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  documentId     String       @db.Uuid
+  tokenHash      String       @unique
+  expiresAt      DateTime?
+  createdById    String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  revokedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  document       Document     @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("DocumentShareCreator", fields: [createdById], references: [id], onDelete: Restrict)
+
+  @@index([organisationId, documentId])
+  @@index([organisationId, expiresAt])
+  @@index([organisationId, revokedAt])
 }

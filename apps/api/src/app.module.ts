@@ -11,6 +11,14 @@ import { AiModule } from './infra/ai/ai.module';
 import { DatabaseModule } from './infra/database/database.module';
 import { RedisModule } from './infra/redis/redis.module';
 import { StorageModule } from './infra/storage/storage.module';
+import { DocumentActivitiesModule } from './documents/document-activities.module';
+import { DocumentLinksModule } from './documents/document-links.module';
+import { DocumentPermissionsModule } from './documents/document-permissions.module';
+import { DocumentSearchModule } from './documents/document-search.module';
+import { DocumentTagsModule } from './documents/document-tags.module';
+import { DocumentVersionsModule } from './documents/document-versions.module';
+import { DocumentsModule } from './documents/documents.module';
+import { FoldersModule } from './documents/folders.module';
 import { InvitationsModule } from './invitations/invitations.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { PermissionsModule } from './permissions/permissions.module';
@@ -52,6 +60,14 @@ import { UsersModule } from './users/users.module';
     PermissionsModule,
     CrmModule,
     ProjectsModule,
+    DocumentActivitiesModule,
+    DocumentsModule,
+    FoldersModule,
+    DocumentVersionsModule,
+    DocumentPermissionsModule,
+    DocumentTagsModule,
+    DocumentLinksModule,
+    DocumentSearchModule,
     InvitationsModule,
     SessionsModule,
     HealthModule,

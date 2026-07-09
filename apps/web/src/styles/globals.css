@@ -210,6 +210,118 @@
     transform-origin: left;
     animation: mikyas-capacity-fill 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
   }
+
+  .document-archive-bg {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .document-archive-bg::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: -2rem -1rem auto;
+    z-index: -1;
+    height: 18rem;
+    border-radius: 1rem;
+    background:
+      radial-gradient(circle at 18% 22%, hsl(var(--foreground) / 0.06), transparent 28rem),
+      radial-gradient(circle at 82% 8%, hsl(var(--primary) / 0.05), transparent 24rem);
+    filter: blur(8px);
+    opacity: 0.95;
+  }
+
+  .document-glass-panel {
+    @apply rounded-md border border-border/80 backdrop-blur-2xl;
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.9), hsl(var(--background) / 0.76)),
+      hsl(var(--background));
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.06) inset,
+      0 28px 90px hsl(240 10% 3.9% / 0.1);
+  }
+
+  .document-card-premium {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .document-card-premium::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: auto 1rem 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.16), transparent);
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+
+  .document-card-premium:hover::after {
+    opacity: 1;
+  }
+
+  .document-reader-focus {
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.06) inset,
+      0 30px 120px hsl(240 10% 3.9% / 0.13);
+  }
+
+  .document-drop-zone {
+    transition:
+      border-color 240ms ease,
+      background 240ms ease,
+      box-shadow 240ms ease,
+      transform 240ms ease;
+  }
+
+  .document-drop-zone:hover,
+  .document-drop-zone[data-drag-over='true'] {
+    border-color: hsl(var(--foreground) / 0.22);
+    background: hsl(var(--primary) / 0.045);
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.06) inset,
+      0 24px 80px hsl(240 10% 3.9% / 0.11);
+    transform: translateY(-2px);
+  }
+
+  .document-ai-orb {
+    position: relative;
+  }
+
+  .document-ai-orb::before {
+    content: '';
+    position: absolute;
+    inset: -0.45rem;
+    border-radius: 999px;
+    background: hsl(var(--primary) / 0.08);
+    animation: document-ai-pulse 2.6s ease-in-out infinite;
+  }
+
+  .document-ai-scan {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .document-ai-scan::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.08), transparent);
+    animation: document-scan 2.2s ease-in-out infinite;
+  }
+
+  .document-ai-ready {
+    box-shadow: 0 0 0 4px hsl(142 71% 45% / 0.08);
+  }
+
+  .document-knowledge-graph {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.55) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.55) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
 }
 
 @keyframes mikyas-ambient {
@@ -257,6 +369,24 @@
   }
   to {
     transform: translate3d(40%, 18%, 0) scale(1.2);
+  }
+}
+
+@keyframes document-ai-pulse {
+  0%,
+  100% {
+    opacity: 0.36;
+    transform: scale(0.94);
+  }
+  50% {
+    opacity: 0.78;
+    transform: scale(1.04);
+  }
+}
+
+@keyframes document-scan {
+  100% {
+    transform: translateX(100%);
   }
 }
 

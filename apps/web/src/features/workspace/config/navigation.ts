@@ -63,7 +63,6 @@ export const workspaceNavigation: NavigationItem[] = [
     permission: 'documents.read',
     featureFlag: 'documents',
     keywords: ['files', 'knowledge', 'notes'],
-    disabled: true,
   },
   {
     title: 'Calendar',
@@ -144,6 +143,12 @@ export const quickActions: NavigationItem[] = [
     route: '/app/projects/list',
     icon: Target,
     keywords: ['projects', 'tasks', 'portfolio'],
+  },
+  {
+    title: 'Search documents',
+    route: '/app/documents/search',
+    icon: FileText,
+    keywords: ['documents', 'knowledge', 'files'],
   },
   {
     title: 'Create organisation',

@@ -15,10 +15,9 @@
     "ignoreDeprecations": "5.0",
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
-    "baseUrl": ".",
     "paths": {
-      "@mikyasos/shared": ["packages/shared/src/index.ts"],
-      "@mikyasos/shared/*": ["packages/shared/src/*"]
+      "@mikyasos/shared": ["./packages/shared/src/index.ts"],
+      "@mikyasos/shared/*": ["./packages/shared/src/*"]
     }
   }
 }

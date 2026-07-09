@@ -137,6 +137,71 @@ const TasksPage = lazy(() =>
     default: module.TasksPage,
   })),
 );
+const DocumentsHomePage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsHomePage,
+  })),
+);
+const DocumentsAllPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsAllPage,
+  })),
+);
+const DocumentsFoldersPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsFoldersPage,
+  })),
+);
+const DocumentFolderDetailPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentFolderDetailPage,
+  })),
+);
+const DocumentDetailPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentDetailPage,
+  })),
+);
+const DocumentPreviewPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentPreviewPage,
+  })),
+);
+const DocumentVersionsPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentVersionsPage,
+  })),
+);
+const DocumentPermissionsPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentPermissionsPage,
+  })),
+);
+const DocumentActivityPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentActivityPage,
+  })),
+);
+const DocumentsSearchPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsSearchPage,
+  })),
+);
+const DocumentTagsPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentTagsPage,
+  })),
+);
+const DocumentsTrashPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsTrashPage,
+  })),
+);
+const DocumentsNotePlaceholderPage = lazy(() =>
+  import('@/features/documents/pages/documents-pages').then((module) => ({
+    default: module.DocumentsNotePlaceholderPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -303,6 +368,58 @@ export const router = createBrowserRouter([
           {
             path: 'tasks/:id',
             element: withSuspense(<TaskDetailPage />),
+          },
+          {
+            path: 'documents',
+            element: withSuspense(<DocumentsHomePage />),
+          },
+          {
+            path: 'documents/all',
+            element: withSuspense(<DocumentsAllPage />),
+          },
+          {
+            path: 'documents/folders',
+            element: withSuspense(<DocumentsFoldersPage />),
+          },
+          {
+            path: 'documents/folders/:id',
+            element: withSuspense(<DocumentFolderDetailPage />),
+          },
+          {
+            path: 'documents/search',
+            element: withSuspense(<DocumentsSearchPage />),
+          },
+          {
+            path: 'documents/tags',
+            element: withSuspense(<DocumentTagsPage />),
+          },
+          {
+            path: 'documents/trash',
+            element: withSuspense(<DocumentsTrashPage />),
+          },
+          {
+            path: 'documents/new-note',
+            element: withSuspense(<DocumentsNotePlaceholderPage />),
+          },
+          {
+            path: 'documents/:id/preview',
+            element: withSuspense(<DocumentPreviewPage />),
+          },
+          {
+            path: 'documents/:id/versions',
+            element: withSuspense(<DocumentVersionsPage />),
+          },
+          {
+            path: 'documents/:id/permissions',
+            element: withSuspense(<DocumentPermissionsPage />),
+          },
+          {
+            path: 'documents/:id/activity',
+            element: withSuspense(<DocumentActivityPage />),
+          },
+          {
+            path: 'documents/:id',
+            element: withSuspense(<DocumentDetailPage />),
           },
         ],
       },

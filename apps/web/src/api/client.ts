@@ -254,6 +254,153 @@ export type ProjectAiPromptTemplates = {
   promptExecutionEnabled: false;
 };
 
+export type DocumentQuery = CrmQuery & {
+  folderId?: string;
+  ownerId?: string;
+  tagId?: string;
+  documentType?: string;
+  visibility?: string;
+  mimeType?: string;
+  linkedEntityType?: string;
+  linkedEntityId?: string;
+  createdFrom?: string;
+  createdTo?: string;
+  updatedFrom?: string;
+  updatedTo?: string;
+};
+
+export type DocumentOwner = Pick<User, 'id' | 'name' | 'email'>;
+
+export type DocumentFolder = {
+  id: string;
+  name: string;
+  description?: string | null;
+  path: string;
+  depth?: number;
+  parentFolderId?: string | null;
+  colour?: string | null;
+  icon?: string | null;
+  visibility?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  _count?: { childFolders?: number; documents?: number };
+};
+
+export type DocumentTag = {
+  id: string;
+  organisationId: string;
+  name: string;
+  colour: string;
+  description?: string | null;
+};
+
+export type KnowledgeDocument = {
+  id: string;
+  organisationId: string;
+  folderId?: string | null;
+  ownerId: string;
+  title: string;
+  description?: string | null;
+  fileName: string;
+  originalFileName: string;
+  mimeType: string;
+  fileExtension: string;
+  fileSize: number;
+  documentType: string;
+  status: string;
+  visibility: string;
+  isPinned: boolean;
+  isLocked: boolean;
+  checksum?: string;
+  createdAt: string;
+  updatedAt: string;
+  folder?: Pick<DocumentFolder, 'id' | 'name' | 'path'> | null;
+  owner?: DocumentOwner | null;
+  currentVersion?: DocumentVersion | null;
+  tags?: Array<{ tag: DocumentTag }>;
+  links?: DocumentLink[];
+  versions?: DocumentVersion[];
+  activities?: DocumentActivity[];
+  _count?: { versions?: number; activities?: number; links?: number };
+};
+
+export type DocumentVersion = {
+  id: string;
+  documentId: string;
+  versionNumber: number;
+  fileName: string;
+  storageKey: string;
+  mimeType: string;
+  fileSize: number;
+  checksum: string;
+  changeNote?: string | null;
+  createdAt: string;
+  uploadedBy?: DocumentOwner | null;
+};
+
+export type DocumentActivity = {
+  id: string;
+  documentId?: string | null;
+  folderId?: string | null;
+  action: string;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+  actor?: DocumentOwner | null;
+};
+
+export type DocumentLink = {
+  id: string;
+  documentId: string;
+  entityType: string;
+  entityId: string;
+  createdAt: string;
+};
+
+export type CreateDocumentBody = {
+  folderId?: string;
+  title: string;
+  description?: string;
+  originalFileName: string;
+  mimeType: string;
+  fileSize: number;
+  checksum: string;
+  visibility?: string;
+  isPinned?: boolean;
+};
+
+export type DocumentAiCapabilities = {
+  capabilities: Array<{
+    key: string;
+    name: string;
+    description: string;
+    status: string;
+    queueBacked: boolean;
+  }>;
+  promptExecutionEnabled: false;
+  embeddingsEnabled: false;
+  vectorSearchEnabled: false;
+  ocrEnabled: false;
+  realtimeEnabled: false;
+  provider: {
+    abstraction: string;
+    configured: boolean;
+    directStorageAccess: false;
+    providerAgnostic: true;
+  };
+};
+
+export type DocumentAiReadiness = {
+  documentId: string;
+  status: string;
+  indexedAt: string | null;
+  textExtracted: boolean;
+  metadataExtracted: boolean;
+  thumbnailGenerated: boolean;
+  ocrPrepared: boolean;
+  embeddingsPrepared: boolean;
+  graphPrepared: boolean;
+};
+
 export type Project = {
   id: string;
   organisationId: string;
@@ -458,10 +605,13 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
   return payload && 'data' in payload ? payload.data : (payload as T);
 }
 
-const toQueryString = (query: CrmQuery) => {
+const toQueryString = (query: Record<string, unknown>) => {
   const params = new URLSearchParams();
   Object.entries(query).forEach(([key, value]) => {
-    if (value !== undefined && value !== '') {
+    if (
+      (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') &&
+      value !== ''
+    ) {
       params.set(key, String(value));
     }
   });
@@ -715,6 +865,143 @@ export const projectsApi = {
     apiRequest<ProjectAiCapabilities>('/projects/ai/capabilities', { token, organisationId }),
   aiPromptTemplates: (token: string, organisationId: string) =>
     apiRequest<ProjectAiPromptTemplates>('/projects/ai/prompt-templates', {
+      token,
+      organisationId,
+    }),
+};
+
+export const documentsApi = {
+  documents: (token: string, organisationId: string, query: DocumentQuery = {}) =>
+    apiRequest<PaginatedResult<KnowledgeDocument>>(`/documents${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  document: (token: string, organisationId: string, id: string) =>
+    apiRequest<KnowledgeDocument>(`/documents/${id}`, { token, organisationId }),
+  createDocument: (token: string, organisationId: string, body: CreateDocumentBody) =>
+    apiRequest<KnowledgeDocument>('/documents', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  updateDocument: (
+    token: string,
+    organisationId: string,
+    id: string,
+    body: Partial<
+      Pick<KnowledgeDocument, 'title' | 'description' | 'visibility' | 'isPinned' | 'isLocked'>
+    > & {
+      folderId?: string | null;
+    },
+  ) =>
+    apiRequest<KnowledgeDocument>(`/documents/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  deleteDocument: (token: string, organisationId: string, id: string) =>
+    apiRequest<{ success: true }>(`/documents/${id}`, { method: 'DELETE', token, organisationId }),
+  downloadDocument: (token: string, organisationId: string, id: string) =>
+    apiRequest<{ fileName: string; mimeType: string; fileSize: number; downloadUrl: string }>(
+      `/documents/${id}/download`,
+      { method: 'POST', token, organisationId },
+    ),
+  folders: (token: string, organisationId: string, parentFolderId?: string) =>
+    apiRequest<DocumentFolder[]>(`/folders${toQueryString({ parentFolderId })}`, {
+      token,
+      organisationId,
+    }),
+  createFolder: (
+    token: string,
+    organisationId: string,
+    body: Pick<DocumentFolder, 'name'> &
+      Partial<
+        Pick<DocumentFolder, 'description' | 'parentFolderId' | 'colour' | 'icon' | 'visibility'>
+      >,
+  ) =>
+    apiRequest<DocumentFolder>('/folders', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  updateFolder: (
+    token: string,
+    organisationId: string,
+    id: string,
+    body: Partial<
+      Pick<
+        DocumentFolder,
+        'name' | 'description' | 'parentFolderId' | 'colour' | 'icon' | 'visibility'
+      >
+    >,
+  ) =>
+    apiRequest<DocumentFolder>(`/folders/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  deleteFolder: (token: string, organisationId: string, id: string) =>
+    apiRequest<{ success: true }>(`/folders/${id}`, { method: 'DELETE', token, organisationId }),
+  versions: (token: string, organisationId: string, documentId: string) =>
+    apiRequest<DocumentVersion[]>(`/documents/${documentId}/versions`, { token, organisationId }),
+  activity: (token: string, organisationId: string, documentId: string) =>
+    apiRequest<DocumentActivity[]>(`/documents/${documentId}/activity`, { token, organisationId }),
+  tags: (token: string, organisationId: string) =>
+    apiRequest<DocumentTag[]>('/document-tags', { token, organisationId }),
+  createTag: (
+    token: string,
+    organisationId: string,
+    body: Pick<DocumentTag, 'name'> & Partial<DocumentTag>,
+  ) =>
+    apiRequest<DocumentTag>('/document-tags', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  deleteTag: (token: string, organisationId: string, id: string) =>
+    apiRequest<{ success: true }>(`/document-tags/${id}`, {
+      method: 'DELETE',
+      token,
+      organisationId,
+    }),
+  assignTag: (token: string, organisationId: string, documentId: string, tagId: string) =>
+    apiRequest<{ id: string }>(`/documents/${documentId}/tags`, {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify({ tagId }),
+    }),
+  linkRecord: (
+    token: string,
+    organisationId: string,
+    documentId: string,
+    body: Pick<DocumentLink, 'entityType' | 'entityId'>,
+  ) =>
+    apiRequest<DocumentLink>(`/documents/${documentId}/links`, {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  search: (token: string, organisationId: string, query: DocumentQuery = {}) =>
+    apiRequest<PaginatedResult<KnowledgeDocument>>(`/documents-search${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  aiCapabilities: (token: string, organisationId: string) =>
+    apiRequest<DocumentAiCapabilities>('/documents/ai/capabilities', { token, organisationId }),
+  aiPromptTemplates: (token: string, organisationId: string) =>
+    apiRequest<{ templates: unknown[]; promptExecutionEnabled: false }>(
+      '/documents/ai/prompt-templates',
+      { token, organisationId },
+    ),
+  aiReadiness: (token: string, organisationId: string, documentId: string) =>
+    apiRequest<DocumentAiReadiness>(`/documents/${documentId}/ai/readiness`, {
       token,
       organisationId,
     }),

@@ -25,6 +25,19 @@ export const DEFAULT_PERMISSIONS = [
   'Files.Delete',
   'Milestones.Manage',
   'TimeTracking.Manage',
+  'Document.Create',
+  'Document.Read',
+  'Document.Update',
+  'Document.Delete',
+  'Document.Download',
+  'Document.UploadVersion',
+  'Document.ManagePermissions',
+  'Document.Share',
+  'Folder.Create',
+  'Folder.Update',
+  'Folder.Delete',
+  'Folder.ManagePermissions',
+  'DocumentTag.Manage',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];
