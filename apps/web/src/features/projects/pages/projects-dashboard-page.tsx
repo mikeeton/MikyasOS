@@ -1,4 +1,5 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   CalendarDays,
   FileUp,
@@ -9,11 +10,14 @@ import {
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
+import { useState } from 'react';
 import { Link } from 'react-router';
 
-import { projectsApi } from '@/api/client';
+import { identityApi, projectsApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { formatDate, projectHealth } from '../components/project-format';
+import { projectSpring } from '../components/project-motion-config';
+import { MotionGroup, MotionItem } from '../components/project-motion';
 import {
   ProjectAiPlaceholder,
   ProjectEmptyState,
@@ -26,6 +30,7 @@ import { useProjectsContext } from '../hooks/use-projects-context';
 
 export function ProjectsDashboardPage() {
   const { token, organisationId, enabled } = useProjectsContext();
+  const [inviteOpen, setInviteOpen] = useState(false);
   const projects = useQuery({
     queryKey: ['projects', 'dashboard', organisationId],
     queryFn: () => projectsApi.projects(token!, organisationId!, { pageSize: 50 }),
@@ -45,6 +50,15 @@ export function ProjectsDashboardPage() {
     queryKey: ['projects', 'activities', organisationId, 'dashboard'],
     queryFn: () => projectsApi.activities(token!, organisationId!, { pageSize: 8 }),
     enabled,
+  });
+  const roles = useQuery({
+    queryKey: ['identity', 'roles', organisationId],
+    queryFn: () => identityApi.roles(token!, organisationId!),
+    enabled: enabled && inviteOpen,
+  });
+  const invite = useMutation({
+    mutationFn: (body: { email: string; roleId: string }) =>
+      identityApi.inviteUser(token!, organisationId!, body),
   });
 
   const projectItems = projects.data?.items ?? [];
@@ -152,28 +166,30 @@ export function ProjectsDashboardPage() {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-[1.25fr_0.75fr]">
-            <section className="premium-card p-5">
+            <MotionItem className="premium-card p-5">
               <h3 className="font-semibold">Priority Projects</h3>
-              <div className="mt-4 grid gap-3">
+              <MotionGroup className="mt-4 grid gap-3">
                 {projectItems.slice(0, 6).map((project) => (
-                  <Link
-                    key={project.id}
-                    to={`/app/projects/${project.id}`}
-                    className="premium-row flex items-center justify-between rounded-md border border-border px-3 py-3"
-                  >
-                    <span>
-                      <span className="block text-sm font-medium">{project.name}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {project.owner?.name ?? 'No owner'} · due {formatDate(project.dueDate)}
+                  <motion.div key={project.id} layout transition={projectSpring}>
+                    <Link
+                      key={project.id}
+                      to={`/app/projects/${project.id}`}
+                      className="premium-row flex items-center justify-between rounded-md border border-border px-3 py-3"
+                    >
+                      <span>
+                        <span className="block text-sm font-medium">{project.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {project.owner?.name ?? 'No owner'} · due {formatDate(project.dueDate)}
+                        </span>
                       </span>
-                    </span>
-                    <span className="rounded bg-muted px-2 py-1 text-xs">
-                      {projectHealth(project)}
-                    </span>
-                  </Link>
+                      <span className="rounded bg-muted px-2 py-1 text-xs">
+                        {projectHealth(project)}
+                      </span>
+                    </Link>
+                  </motion.div>
                 ))}
-              </div>
-            </section>
+              </MotionGroup>
+            </MotionItem>
             <section className="grid gap-4">
               <ProjectAiPlaceholder title="AI Project Insights" />
               <ProjectAiPlaceholder title="AI Recommendations" />
@@ -181,24 +197,27 @@ export function ProjectsDashboardPage() {
           </div>
 
           <div className="grid gap-6 xl:grid-cols-3">
-            <section className="premium-card p-5 xl:col-span-2">
+            <MotionItem className="premium-card p-5 xl:col-span-2">
               <h3 className="font-semibold">Recent Activity</h3>
-              <div className="mt-4 grid gap-3">
+              <MotionGroup className="mt-4 grid gap-3">
                 {(activities.data ?? []).map((activity) => (
-                  <div key={activity.id} className="rounded-md border border-border p-3">
+                  <MotionItem key={activity.id} className="rounded-md border border-border p-3">
                     <p className="text-sm font-medium">{activity.title}</p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {activity.type} · {formatDate(activity.createdAt)}
                     </p>
-                  </div>
+                  </MotionItem>
                 ))}
-              </div>
-            </section>
-            <section className="premium-card p-5">
+              </MotionGroup>
+            </MotionItem>
+            <MotionItem className="premium-card p-5">
               <h3 className="font-semibold">Team Workload</h3>
-              <div className="mt-4 grid gap-3">
+              <MotionGroup className="mt-4 grid gap-3">
                 {(workload.data ?? []).slice(0, 5).map((row) => (
-                  <div key={row.user.id} className="rounded-md border border-border p-3 text-sm">
+                  <MotionItem
+                    key={row.user.id}
+                    className="rounded-md border border-border p-3 text-sm"
+                  >
                     <div className="flex items-center justify-between">
                       <span className="font-medium">{row.user.name}</span>
                       <span className="text-xs text-muted-foreground">{row.capacityStatus}</span>
@@ -206,33 +225,147 @@ export function ProjectsDashboardPage() {
                     <p className="mt-1 text-xs text-muted-foreground">
                       {row.openTasks} tasks · {row.estimatedHours}h estimated
                     </p>
-                  </div>
+                  </MotionItem>
                 ))}
-              </div>
-            </section>
+              </MotionGroup>
+            </MotionItem>
           </div>
 
-          <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <MotionGroup className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
             <QuickAction icon={Plus} label="Create Project" to="/app/projects/new" />
             <QuickAction icon={ListChecks} label="Create Task" to="/app/projects/list" />
-            <QuickAction icon={UsersRound} label="Invite Team Member" to="/app/settings" />
+            <QuickAction
+              icon={UsersRound}
+              label="Invite Team Member"
+              onClick={() => setInviteOpen(true)}
+            />
             <QuickAction icon={FileUp} label="Upload Project File" to="/app/projects/list" />
             <QuickAction icon={Flag} label="Create Milestone" to="/app/projects/list" />
             <QuickAction icon={CalendarDays} label="Open Calendar" to="/app/projects/list" />
-          </section>
+            <QuickAction icon={Search} label="Generate Status Report" to="/app/projects/list" />
+          </MotionGroup>
+          <AnimatePresence>
+            {inviteOpen ? (
+              <motion.div
+                className="fixed inset-0 z-50 grid place-items-center bg-background/80 px-4 backdrop-blur-sm"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+              >
+                <motion.form
+                  className="premium-card w-full max-w-md p-5"
+                  initial={{ opacity: 0, y: 24, scale: 0.97 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 16, scale: 0.98 }}
+                  transition={projectSpring}
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    const form = new FormData(event.currentTarget);
+                    const emailValue = form.get('email');
+                    const roleIdValue = form.get('roleId');
+                    const email = typeof emailValue === 'string' ? emailValue : '';
+                    const roleId = typeof roleIdValue === 'string' ? roleIdValue : '';
+                    invite.mutate({ email, roleId });
+                  }}
+                >
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="font-semibold">Invite team member</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Send an organisation invite using the existing role system.
+                      </p>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setInviteOpen(false)}
+                    >
+                      Close
+                    </Button>
+                  </div>
+                  <div className="mt-5 grid gap-4">
+                    <label className="grid gap-2 text-sm font-medium">
+                      Email
+                      <input name="email" type="email" required className="premium-input" />
+                    </label>
+                    <label className="grid gap-2 text-sm font-medium">
+                      Role
+                      <select name="roleId" required className="premium-input">
+                        {(roles.data ?? []).map((role) => (
+                          <option key={role.id} value={role.id}>
+                            {role.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    {roles.isLoading ? (
+                      <p className="text-sm text-muted-foreground">Loading roles...</p>
+                    ) : null}
+                    {invite.error ? (
+                      <p className="text-sm text-destructive">{invite.error.message}</p>
+                    ) : null}
+                    {invite.isSuccess ? (
+                      <p className="rounded-md border border-border bg-muted px-3 py-2 text-sm">
+                        Invite created. The returned invite token is ready for an email delivery
+                        pass.
+                      </p>
+                    ) : null}
+                    <Button
+                      type="submit"
+                      disabled={invite.isPending || roles.isLoading || !roles.data?.length}
+                    >
+                      {invite.isPending ? 'Inviting...' : 'Send invite'}
+                    </Button>
+                  </div>
+                </motion.form>
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
         </>
       )}
     </ProjectShell>
   );
 }
 
-function QuickAction({ icon: Icon, label, to }: { icon: LucideIcon; label: string; to: string }) {
+function QuickAction({
+  icon: Icon,
+  label,
+  to,
+  onClick,
+}: {
+  icon: LucideIcon;
+  label: string;
+  to?: string;
+  onClick?: () => void;
+}) {
+  const content = (
+    <>
+      <Icon className="size-5" aria-hidden="true" />
+      {label}
+    </>
+  );
+
+  if (to) {
+    return (
+      <MotionItem>
+        <Button asChild variant="outline" className="h-16 w-full justify-start gap-3">
+          <Link to={to}>{content}</Link>
+        </Button>
+      </MotionItem>
+    );
+  }
+
   return (
-    <Button asChild variant="outline" className="h-16 justify-start gap-3">
-      <Link to={to}>
-        <Icon className="size-5" aria-hidden="true" />
-        {label}
-      </Link>
-    </Button>
+    <MotionItem>
+      <Button
+        type="button"
+        variant="outline"
+        className="h-16 w-full justify-start gap-3"
+        onClick={onClick}
+      >
+        {content}
+      </Button>
+    </MotionItem>
   );
 }

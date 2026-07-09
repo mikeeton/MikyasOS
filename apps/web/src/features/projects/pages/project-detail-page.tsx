@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   CalendarDays,
   Edit,
@@ -10,11 +10,15 @@ import {
   UsersRound,
   type LucideIcon,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { Link, useParams } from 'react-router';
 
 import { projectsApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
+import { queryClient } from '@/lib/query-client';
 import { formatDate, formatHours, formatMoney, projectHealth } from '../components/project-format';
+import { projectSpring } from '../components/project-motion-config';
+import { MotionGroup, MotionItem } from '../components/project-motion';
 import {
   ProjectAiPlaceholder,
   ProjectErrorState,
@@ -77,7 +81,7 @@ export function ProjectDetailPage() {
         />
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.35fr_0.75fr]">
+      <MotionGroup className="grid gap-6 xl:grid-cols-[1.35fr_0.75fr]">
         <section className="grid gap-6">
           <Panel title="Project Overview" icon={Flag}>
             <div className="grid gap-4 md:grid-cols-3">
@@ -90,35 +94,38 @@ export function ProjectDetailPage() {
             </div>
           </Panel>
           <Panel title="Tasks" icon={ListChecks}>
-            <div className="grid gap-2">
+            <QuickTaskForm projectId={item.id} />
+            <MotionGroup className="grid gap-2">
               {tasks.slice(0, 8).map((task) => (
-                <Link
-                  key={task.id}
-                  to={`/app/tasks/${task.id}`}
-                  className="premium-row flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
-                >
-                  <span>{task.title}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {task.status} · {task.priority}
-                  </span>
-                </Link>
+                <MotionItem key={task.id}>
+                  <Link
+                    key={task.id}
+                    to={`/app/tasks/${task.id}`}
+                    className="premium-row flex items-center justify-between rounded-md border border-border px-3 py-2 text-sm"
+                  >
+                    <span>{task.title}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {task.status} · {task.priority}
+                    </span>
+                  </Link>
+                </MotionItem>
               ))}
               {tasks.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No tasks yet.</p>
               ) : null}
-            </div>
+            </MotionGroup>
           </Panel>
           <Panel title="Activity Timeline" icon={CalendarDays}>
-            <div className="grid gap-3">
+            <MotionGroup className="grid gap-3">
               {(item.activities ?? []).slice(0, 8).map((activity) => (
-                <div key={activity.id} className="rounded-md border border-border p-3">
+                <MotionItem key={activity.id} className="rounded-md border border-border p-3">
                   <p className="text-sm font-medium">{activity.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {activity.type} · {formatDate(activity.createdAt)}
                   </p>
-                </div>
+                </MotionItem>
               ))}
-            </div>
+            </MotionGroup>
           </Panel>
         </section>
         <aside className="grid content-start gap-4">
@@ -133,9 +140,18 @@ export function ProjectDetailPage() {
             </p>
           </Panel>
           <Panel title="Files" icon={FileText}>
-            <p className="text-sm text-muted-foreground">
-              {item.files?.length ?? 0} files attached.
-            </p>
+            <ProjectFileUploader projectId={item.id} />
+            <div className="mt-4 grid gap-2">
+              {(item.files ?? []).slice(0, 5).map((file) => (
+                <div key={file.id} className="rounded-md border border-border p-3 text-sm">
+                  <span className="font-medium">{file.originalFilename}</span>
+                  <span className="block text-xs text-muted-foreground">{file.mimeType}</span>
+                </div>
+              ))}
+              {(item.files ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No files attached.</p>
+              ) : null}
+            </div>
           </Panel>
           <Panel title="Time Tracking" icon={Timer}>
             <p className="text-sm text-muted-foreground">
@@ -149,8 +165,79 @@ export function ProjectDetailPage() {
           </Panel>
           <ProjectAiPlaceholder title="AI Workspace Placeholder" />
         </aside>
-      </div>
+      </MotionGroup>
     </ProjectShell>
+  );
+}
+
+function QuickTaskForm({ projectId }: { projectId: string }) {
+  const { token, organisationId } = useProjectsContext();
+  const createTask = useMutation({
+    mutationFn: (body: { title: string; projectId: string; priority: string; status: string }) =>
+      projectsApi.createTask(token!, organisationId!, body),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+
+  return (
+    <form
+      className="mb-4 grid gap-2 sm:grid-cols-[1fr_auto]"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const form = new FormData(event.currentTarget);
+        const titleValue = form.get('title');
+        const title = typeof titleValue === 'string' ? titleValue.trim() : '';
+        if (title) {
+          createTask.mutate({ projectId, title, priority: 'MEDIUM', status: 'TODO' });
+          event.currentTarget.reset();
+        }
+      }}
+    >
+      <input name="title" className="premium-input" placeholder="Add a task..." />
+      <Button type="submit" variant="outline" disabled={createTask.isPending}>
+        {createTask.isPending ? 'Adding...' : 'Add task'}
+      </Button>
+      {createTask.error ? (
+        <p className="text-sm text-destructive sm:col-span-2">{createTask.error.message}</p>
+      ) : null}
+    </form>
+  );
+}
+
+function ProjectFileUploader({ projectId }: { projectId: string }) {
+  const { token, organisationId } = useProjectsContext();
+  const upload = useMutation({
+    mutationFn: (file: File) =>
+      projectsApi.createFile(token!, organisationId!, {
+        projectId,
+        storageKey: `local-placeholder/${projectId}/${crypto.randomUUID()}-${file.name}`,
+        originalFilename: file.name,
+        mimeType: file.type || 'application/octet-stream',
+        fileSize: file.size,
+      }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+
+  return (
+    <form
+      className="grid gap-2"
+      onSubmit={(event) => {
+        event.preventDefault();
+        const file = new FormData(event.currentTarget).get('file');
+        if (file instanceof File && file.size > 0) {
+          upload.mutate(file);
+          event.currentTarget.reset();
+        }
+      }}
+    >
+      <input name="file" type="file" className="premium-input text-sm" />
+      {upload.error ? <p className="text-xs text-destructive">{upload.error.message}</p> : null}
+      <Button type="submit" variant="outline" size="sm" disabled={upload.isPending}>
+        {upload.isPending ? 'Adding file...' : 'Add file'}
+      </Button>
+      <p className="text-xs text-muted-foreground">
+        Stores file metadata now; binary storage can attach to the same record later.
+      </p>
+    </form>
   );
 }
 
@@ -164,13 +251,19 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="premium-card p-5">
+    <motion.section
+      className="premium-card p-5"
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={projectSpring}
+    >
       <div className="mb-4 flex items-center gap-2">
         <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
         <h3 className="font-semibold">{title}</h3>
       </div>
       {children}
-    </section>
+    </motion.section>
   );
 }
 

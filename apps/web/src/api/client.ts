@@ -370,6 +370,14 @@ export type WorkloadRow = {
   tasks: Task[];
 };
 
+export type Role = {
+  id: string;
+  organisationId: string;
+  name: string;
+  type: string;
+  isSystem: boolean;
+};
+
 const apiBaseUrl =
   typeof import.meta.env.VITE_API_BASE_URL === 'string'
     ? import.meta.env.VITE_API_BASE_URL
@@ -472,6 +480,8 @@ export const identityApi = {
       organisationId,
       body: JSON.stringify(body),
     }),
+  roles: (token: string, organisationId: string) =>
+    apiRequest<Role[]>('/roles', { token, organisationId }),
   acceptInvitation: (body: { token: string; name?: string; password?: string }) =>
     apiRequest<AuthResponse>('/invitations/accept', { method: 'POST', body: JSON.stringify(body) }),
   logout: (token: string) =>
@@ -606,6 +616,25 @@ export const projectsApi = {
       organisationId,
       body: JSON.stringify(body),
     }),
+  updateTask: (token: string, organisationId: string, id: string, body: Partial<Task>) =>
+    apiRequest<Task>(`/tasks/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  moveTask: (
+    token: string,
+    organisationId: string,
+    id: string,
+    body: Pick<Partial<Task>, 'projectId' | 'parentTaskId' | 'status' | 'position'>,
+  ) =>
+    apiRequest<Task>(`/tasks/${id}/move`, {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
   completeTask: (token: string, organisationId: string, id: string) =>
     apiRequest<Task>(`/tasks/${id}/complete`, { method: 'POST', token, organisationId }),
   milestones: (token: string, organisationId: string, query: WorkQuery = {}) =>
@@ -619,6 +648,21 @@ export const projectsApi = {
     apiRequest<ProjectFile[]>(`/project-files${toQueryString(query)}`, {
       token,
       organisationId,
+    }),
+  createFile: (
+    token: string,
+    organisationId: string,
+    body: Pick<
+      ProjectFile,
+      'projectId' | 'storageKey' | 'originalFilename' | 'mimeType' | 'fileSize'
+    > &
+      Partial<Pick<ProjectFile, 'taskId' | 'commentId'>>,
+  ) =>
+    apiRequest<ProjectFile>('/project-files', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
     }),
   activities: (token: string, organisationId: string, query: WorkQuery = {}) =>
     apiRequest<ProjectActivity[]>(`/project-activities${toQueryString(query)}`, {

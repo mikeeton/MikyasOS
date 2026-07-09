@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
+import { motion } from 'framer-motion';
 import {
   CheckCircle2,
   FileText,
@@ -13,6 +14,8 @@ import { projectsApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { queryClient } from '@/lib/query-client';
 import { formatDate, formatHours } from '../components/project-format';
+import { projectSpring } from '../components/project-motion-config';
+import { MotionGroup, MotionItem } from '../components/project-motion';
 import {
   ProjectAiPlaceholder,
   ProjectErrorState,
@@ -62,7 +65,7 @@ export function TaskDetailPage() {
         </>
       }
     >
-      <div className="grid gap-6 xl:grid-cols-[1.3fr_0.75fr]">
+      <MotionGroup className="grid gap-6 xl:grid-cols-[1.3fr_0.75fr]">
         <section className="grid gap-6">
           <Panel title="Description" icon={FileText}>
             <p className="text-sm leading-6 text-muted-foreground">
@@ -70,28 +73,34 @@ export function TaskDetailPage() {
             </p>
           </Panel>
           <Panel title="Subtasks and checklist" icon={GitBranch}>
-            <div className="grid gap-2">
+            <MotionGroup className="grid gap-2">
               {(item.subtasks ?? []).map((subtask) => (
-                <div key={subtask.id} className="rounded-md border border-border p-3 text-sm">
+                <MotionItem
+                  key={subtask.id}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
                   {subtask.title}
-                </div>
+                </MotionItem>
               ))}
               {(item.subtasks ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No subtasks yet.</p>
               ) : null}
-            </div>
+            </MotionGroup>
           </Panel>
           <Panel title="Comments" icon={MessageSquare}>
-            <div className="grid gap-2">
+            <MotionGroup className="grid gap-2">
               {(item.comments ?? []).map((comment) => (
-                <div key={comment.id} className="rounded-md border border-border p-3 text-sm">
+                <MotionItem
+                  key={comment.id}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
                   {comment.content}
-                </div>
+                </MotionItem>
               ))}
               {(item.comments ?? []).length === 0 ? (
                 <p className="text-sm text-muted-foreground">No comments yet.</p>
               ) : null}
-            </div>
+            </MotionGroup>
           </Panel>
         </section>
         <aside className="grid content-start gap-4">
@@ -112,7 +121,7 @@ export function TaskDetailPage() {
           </Panel>
           <ProjectAiPlaceholder title="Future AI task suggestions" />
         </aside>
-      </div>
+      </MotionGroup>
     </ProjectShell>
   );
 }
@@ -127,13 +136,19 @@ function Panel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="premium-card p-5">
+    <motion.section
+      className="premium-card p-5"
+      layout
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={projectSpring}
+    >
       <div className="mb-4 flex items-center gap-2">
         <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
         <h3 className="font-semibold">{title}</h3>
       </div>
       {children}
-    </section>
+    </motion.section>
   );
 }
 

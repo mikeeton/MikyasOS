@@ -14,15 +14,13 @@ const sizes = ['1-10', '11-50', '51-200', '201-1000', '1000+'];
 export function OnboardingPage() {
   const navigate = useNavigate();
   const token = useAuthStore((state) => state.accessToken);
-  const user = useAuthStore((state) => state.user);
-  const setUser = useAuthStore((state) => state.setUser);
+  const setAuth = useAuthStore((state) => state.setAuth);
   const mutation = useMutation({
     mutationFn: (body: Parameters<typeof identityApi.createOrganisation>[1]) =>
       identityApi.createOrganisation(token!, body),
-    onSuccess: (organisation) => {
-      if (user) {
-        setUser({ ...user, activeOrganisationId: organisation.id });
-      }
+    onSuccess: async (organisation) => {
+      const response = await identityApi.switchOrganisation(token!, organisation.id);
+      setAuth(response);
       void queryClient.invalidateQueries({ queryKey: ['organisations'] });
       void navigate('/app');
     },

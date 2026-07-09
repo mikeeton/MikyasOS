@@ -1,9 +1,13 @@
-import { useQuery } from '@tanstack/react-query';
-import { CalendarDays } from 'lucide-react';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { motion, useReducedMotion } from 'framer-motion';
+import { useState } from 'react';
 import { Link, useParams } from 'react-router';
 
 import { projectsApi, type Task } from '@/api/client';
+import { queryClient } from '@/lib/query-client';
 import { formatDate, formatHours } from '../components/project-format';
+import { projectSpring } from '../components/project-motion-config';
+import { MotionGroup, MotionItem } from '../components/project-motion';
 import {
   ProjectAiPlaceholder,
   ProjectErrorState,
@@ -23,6 +27,18 @@ const boardColumns = [
 
 export function ProjectBoardPage() {
   const data = useProjectViewData();
+  const { token, organisationId } = useProjectsContext();
+  const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
+  const [dragOverStatus, setDragOverStatus] = useState<string | null>(null);
+  const moveTask = useMutation({
+    mutationFn: ({ taskId, status }: { taskId: string; status: string }) =>
+      projectsApi.moveTask(token!, organisationId!, taskId, {
+        projectId: data.project?.id,
+        status,
+      }),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['projects'] }),
+  });
+
   if (data.loading) return <ProjectSkeleton rows={8} />;
   if (data.error) return <ProjectErrorState onRetry={data.retry} />;
 
@@ -31,9 +47,37 @@ export function ProjectBoardPage() {
       title={`${data.project?.name ?? 'Project'} board`}
       description="Primary board view prepared for drag-and-drop, keyboard movement, multi-select, bulk move, and quick edit."
     >
-      <div className="grid gap-4 overflow-x-auto xl:grid-cols-6">
+      {moveTask.isError ? (
+        <p className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          Could not move task. Please try again.
+        </p>
+      ) : null}
+      <MotionGroup className="grid gap-4 overflow-x-auto xl:grid-cols-6">
         {boardColumns.map(([label, status]) => (
-          <section key={label} className="min-h-[30rem] min-w-64 premium-card p-3">
+          <motion.section
+            key={label}
+            className="project-drop-zone min-h-[30rem] min-w-64 premium-card p-3"
+            data-drag-over={dragOverStatus === status}
+            layout
+            transition={projectSpring}
+            onDragEnter={() => setDragOverStatus(status)}
+            onDragLeave={() =>
+              setDragOverStatus((current) => (current === status ? null : current))
+            }
+            onDragOver={(event) => {
+              event.preventDefault();
+              setDragOverStatus(status);
+            }}
+            onDrop={(event) => {
+              event.preventDefault();
+              const taskId = event.dataTransfer.getData('text/task-id') || draggingTaskId;
+              if (taskId) {
+                moveTask.mutate({ taskId, status });
+              }
+              setDraggingTaskId(null);
+              setDragOverStatus(null);
+            }}
+          >
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-semibold">{label}</h3>
               <span className="rounded bg-muted px-2 py-1 text-xs">
@@ -44,12 +88,21 @@ export function ProjectBoardPage() {
               {data.tasks
                 .filter((task) => task.status === status)
                 .map((task) => (
-                  <TaskCard key={task.id} task={task} />
+                  <TaskCard
+                    key={task.id}
+                    task={task}
+                    dragging={draggingTaskId === task.id}
+                    onDragStart={() => setDraggingTaskId(task.id)}
+                    onDragEnd={() => {
+                      setDraggingTaskId(null);
+                      setDragOverStatus(null);
+                    }}
+                  />
                 ))}
             </div>
-          </section>
+          </motion.section>
         ))}
-      </div>
+      </MotionGroup>
       <ProjectAiPlaceholder title="AI board recommendations placeholder" />
     </ProjectShell>
   );
@@ -79,7 +132,14 @@ export function ProjectTaskListPage() {
           </thead>
           <tbody>
             {data.tasks.map((task) => (
-              <tr key={task.id} className="premium-row">
+              <motion.tr
+                key={task.id}
+                className="premium-row"
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={projectSpring}
+              >
                 <td className="px-4 py-3 font-medium">
                   <Link to={`/app/tasks/${task.id}`}>{task.title}</Link>
                 </td>
@@ -88,7 +148,7 @@ export function ProjectTaskListPage() {
                 <td className="px-4 py-3">{task.assignee?.name ?? 'Unassigned'}</td>
                 <td className="px-4 py-3">{formatDate(task.dueDate)}</td>
                 <td className="px-4 py-3">{formatHours(task.estimatedHours)}</td>
-              </tr>
+              </motion.tr>
             ))}
           </tbody>
         </table>
@@ -115,18 +175,18 @@ export function ProjectTimelinePage() {
             </span>
           ))}
         </div>
-        <div className="mt-6 grid gap-4">
+        <MotionGroup className="mt-6 grid gap-4">
           {[...(data.project?.milestones ?? []), ...data.tasks].slice(0, 12).map((item) => (
-            <div key={item.id} className="grid gap-2 md:grid-cols-[10rem_1fr]">
+            <MotionItem key={item.id} className="grid gap-2 md:grid-cols-[10rem_1fr]">
               <span className="text-sm text-muted-foreground">
                 {formatDate('dueDate' in item ? item.dueDate : undefined)}
               </span>
               <div className="rounded-md border border-border p-3">
                 <p className="text-sm font-medium">{'title' in item ? item.title : 'Milestone'}</p>
               </div>
-            </div>
+            </MotionItem>
           ))}
-        </div>
+        </MotionGroup>
       </section>
       <ProjectAiPlaceholder title="Critical path placeholder" />
     </ProjectShell>
@@ -135,38 +195,93 @@ export function ProjectTimelinePage() {
 
 export function ProjectCalendarPage() {
   const data = useProjectViewData();
+  const [selectedDate, setSelectedDate] = useState(() => new Date().toISOString().slice(0, 10));
   if (data.loading) return <ProjectSkeleton rows={8} />;
   if (data.error) return <ProjectErrorState onRetry={data.retry} />;
 
   const scheduled = data.tasks.filter((task) => task.dueDate);
+  const month = new Date();
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  const calendarCells = [
+    ...Array.from({ length: startOffset }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, index) => {
+      const day = index + 1;
+      return new Date(month.getFullYear(), month.getMonth(), day).toISOString().slice(0, 10);
+    }),
+  ];
+  const selectedTasks = scheduled.filter((task) => task.dueDate?.slice(0, 10) === selectedDate);
+
   return (
     <ProjectShell
       title={`${data.project?.name ?? 'Project'} calendar`}
       description="Calendar architecture for tasks, deadlines, milestones, future meetings, leave, agenda view, and drag-to-reschedule."
     >
       <div className="grid gap-4 lg:grid-cols-[1fr_20rem]">
-        <section className="premium-card grid min-h-[28rem] place-items-center p-5 text-center">
-          <CalendarDays className="mx-auto size-8 text-muted-foreground" aria-hidden="true" />
-          <h3 className="mt-4 font-semibold">Month / Week / Day calendar prepared</h3>
-          <p className="mt-2 max-w-md text-sm text-muted-foreground">
-            Interactive calendar rendering comes in a later UI pass.
-          </p>
+        <section className="premium-card p-5">
+          <div className="flex items-center justify-between">
+            <h3 className="font-semibold">
+              {month.toLocaleDateString(undefined, { month: 'long', year: 'numeric' })}
+            </h3>
+            <span className="rounded bg-muted px-2 py-1 text-xs">{selectedDate}</span>
+          </div>
+          <div className="mt-5 grid grid-cols-7 gap-2 text-center text-xs text-muted-foreground">
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
+              <span key={day}>{day}</span>
+            ))}
+          </div>
+          <div className="mt-2 grid grid-cols-7 gap-2">
+            {calendarCells.map((date, index) =>
+              date ? (
+                <motion.button
+                  key={date}
+                  type="button"
+                  onClick={() => setSelectedDate(date)}
+                  className={`min-h-20 rounded-md border border-border p-2 text-left text-sm transition hover:bg-accent ${
+                    selectedDate === date ? 'border-primary bg-primary/10' : ''
+                  }`}
+                  layout
+                  whileHover={{ y: -2 }}
+                  whileTap={{ scale: 0.98 }}
+                  transition={projectSpring}
+                >
+                  <span className="font-medium">{Number(date.slice(8, 10))}</span>
+                  {scheduled.some((task) => task.dueDate?.slice(0, 10) === date) ? (
+                    <span className="mt-2 block h-1.5 w-8 rounded-full bg-primary" />
+                  ) : null}
+                </motion.button>
+              ) : (
+                <span key={`empty-${index}`} />
+              ),
+            )}
+          </div>
         </section>
         <section className="premium-card p-5">
           <h3 className="font-semibold">Agenda</h3>
           <div className="mt-4 grid gap-2">
-            {scheduled.slice(0, 10).map((task) => (
-              <Link
+            {(selectedTasks.length ? selectedTasks : scheduled.slice(0, 10)).map((task) => (
+              <motion.div
                 key={task.id}
-                to={`/app/tasks/${task.id}`}
-                className="rounded-md border border-border p-3 text-sm"
+                layout
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
               >
-                {task.title}
-                <span className="block text-xs text-muted-foreground">
-                  {formatDate(task.dueDate)}
-                </span>
-              </Link>
+                <Link
+                  key={task.id}
+                  to={`/app/tasks/${task.id}`}
+                  className="rounded-md border border-border p-3 text-sm"
+                >
+                  {task.title}
+                  <span className="block text-xs text-muted-foreground">
+                    {formatDate(task.dueDate)}
+                  </span>
+                </Link>
+              </motion.div>
             ))}
+            {scheduled.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No scheduled tasks yet.</p>
+            ) : null}
           </div>
         </section>
       </div>
@@ -193,9 +308,9 @@ export function ProjectWorkloadPage() {
       ) : workload.isError ? (
         <ProjectErrorState onRetry={() => void workload.refetch()} />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <MotionGroup className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {(workload.data ?? []).map((row) => (
-            <section key={row.user.id} className="premium-card p-5">
+            <MotionItem key={row.user.id} className="premium-card p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold">{row.user.name}</h3>
                 <span className="rounded bg-muted px-2 py-1 text-xs">{row.capacityStatus}</span>
@@ -205,13 +320,13 @@ export function ProjectWorkloadPage() {
               </p>
               <div className="mt-4 h-2 rounded-full bg-muted">
                 <div
-                  className="h-2 rounded-full bg-primary"
+                  className="project-capacity-bar h-2 rounded-full bg-primary"
                   style={{ width: `${Math.min(100, (row.estimatedHours / 40) * 100)}%` }}
                 />
               </div>
-            </section>
+            </MotionItem>
           ))}
-        </div>
+        </MotionGroup>
       )}
       <ProjectAiPlaceholder title="AI workload suggestions placeholder" />
     </ProjectShell>
@@ -244,16 +359,42 @@ function useProjectViewData() {
   };
 }
 
-function TaskCard({ task }: { task: Task }) {
+function TaskCard({
+  task,
+  dragging,
+  onDragStart,
+  onDragEnd,
+}: {
+  task: Task;
+  dragging: boolean;
+  onDragStart: () => void;
+  onDragEnd: () => void;
+}) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <Link
-      to={`/app/tasks/${task.id}`}
-      className="rounded-md border border-border bg-muted/30 p-3 text-sm transition hover:bg-accent"
+    <motion.div
+      layout
+      whileHover={reduceMotion ? undefined : { y: -4, rotateX: 1.5, rotateY: -1.5 }}
+      animate={dragging ? { scale: 1.03, rotate: -0.6 } : { scale: 1, rotate: 0 }}
+      transition={projectSpring}
     >
-      <p className="font-medium">{task.title}</p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        {task.priority} · {task.assignee?.name ?? 'Unassigned'}
-      </p>
-    </Link>
+      <Link
+        to={`/app/tasks/${task.id}`}
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.setData('text/task-id', task.id);
+          event.dataTransfer.effectAllowed = 'move';
+          onDragStart();
+        }}
+        onDragEnd={onDragEnd}
+        className="block rounded-md border border-border bg-muted/30 p-3 text-sm transition hover:bg-accent"
+      >
+        <p className="font-medium">{task.title}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {task.priority} · {task.assignee?.name ?? 'Unassigned'}
+        </p>
+      </Link>
+    </motion.div>
   );
 }

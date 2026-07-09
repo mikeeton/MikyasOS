@@ -1,9 +1,12 @@
+import { motion, useReducedMotion } from 'framer-motion';
 import { AlertTriangle, BriefcaseBusiness, Sparkles } from 'lucide-react';
 import { Link } from 'react-router';
 import type { ReactNode } from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { projectEase, projectSpring } from './project-motion-config';
+import { MotionGroup, MotionItem } from './project-motion';
 
 type ProjectShellProps = {
   eyebrow?: string;
@@ -21,17 +24,30 @@ export function ProjectShell({
   children,
 }: ProjectShellProps) {
   return (
-    <section className="grid gap-7" aria-live="polite">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <MotionGroup className="grid gap-7" aria-live="polite">
+      <MotionItem className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-sm font-medium text-muted-foreground">{eyebrow}</p>
-          <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">{title}</h2>
+          <motion.p
+            className="text-sm font-medium text-muted-foreground"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.42, ease: projectEase }}
+          >
+            {eyebrow}
+          </motion.p>
+          <motion.h2
+            className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl"
+            layout
+            transition={projectSpring}
+          >
+            {title}
+          </motion.h2>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">{description}</p>
         </div>
         {actions ? <div className="flex flex-wrap gap-2">{actions}</div> : null}
-      </div>
-      <div className="grid gap-6">{children}</div>
-    </section>
+      </MotionItem>
+      <MotionItem className="grid gap-6">{children}</MotionItem>
+    </MotionGroup>
   );
 }
 
@@ -46,8 +62,16 @@ export function ProjectStat({
   hint: string;
   tone?: 'default' | 'success' | 'warning';
 }) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <div className="premium-card p-4">
+    <motion.div
+      className="premium-card project-stat-card p-4"
+      initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.97 }}
+      animate={reduceMotion ? undefined : { opacity: 1, y: 0, scale: 1 }}
+      transition={projectSpring}
+      whileHover={reduceMotion ? undefined : { y: -4, scale: 1.01 }}
+    >
       <p className="text-sm text-muted-foreground">{label}</p>
       <p
         className={cn(
@@ -59,7 +83,7 @@ export function ProjectStat({
         {value}
       </p>
       <p className="mt-2 text-xs leading-5 text-muted-foreground">{hint}</p>
-    </div>
+    </motion.div>
   );
 }
 
@@ -122,12 +146,18 @@ export function ProjectErrorState({ onRetry }: { onRetry: () => void }) {
 
 export function ProjectAiPlaceholder({ title }: { title: string }) {
   return (
-    <section className="premium-card border-dashed p-5" aria-label={`${title} coming soon`}>
+    <motion.section
+      className="premium-card project-ai-card border-dashed p-5"
+      aria-label={`${title} coming soon`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.6, ease: projectEase }}
+    >
       <Sparkles className="size-5 text-muted-foreground" aria-hidden="true" />
       <h3 className="mt-4 font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
         Placeholder for future AI recommendations. No AI behaviour is connected in this part.
       </p>
-    </section>
+    </motion.section>
   );
 }

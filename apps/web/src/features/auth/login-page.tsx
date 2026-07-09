@@ -1,16 +1,17 @@
 import { useMutation } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { Link, Navigate, useNavigate } from 'react-router';
 
 import { identityApi } from '@/api/client';
 import { Button } from '@/components/ui/button';
 import { TextField } from '@/components/forms/text-field';
 import { formString } from '@/lib/form-data';
-import { useAuthStore } from '@/stores/auth-store';
+import { isJwtExpired, useAuthStore } from '@/stores/auth-store';
 import { AuthLayout } from './auth-layout';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { accessToken, user, setAuth } = useAuthStore();
+  const { accessToken, user, setAuth, clearAuth } = useAuthStore();
   const mutation = useMutation({
     mutationFn: identityApi.login,
     onSuccess: (response) => {
@@ -18,6 +19,12 @@ export function LoginPage() {
       void navigate(response.user.activeOrganisationId ? '/app' : '/onboarding');
     },
   });
+
+  useEffect(() => {
+    if (isJwtExpired(accessToken)) {
+      clearAuth();
+    }
+  }, [accessToken, clearAuth]);
 
   if (accessToken) {
     return <Navigate to={user?.activeOrganisationId ? '/app' : '/onboarding'} replace />;
