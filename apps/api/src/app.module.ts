@@ -9,6 +9,7 @@ import { AppConfigModule } from './config/app-config.module';
 import { AppConfigService } from './config/app-config.service';
 import { CommunicationModule } from './communication/communication.module';
 import { CrmModule } from './crm/crm.module';
+import { EnterpriseModule } from './enterprise/enterprise.module';
 import { FinanceModule } from './finance/finance.module';
 import { HealthModule } from './health/health.module';
 import { AiModule } from './infra/ai/ai.module';
@@ -28,6 +29,7 @@ import { InvitationsModule } from './invitations/invitations.module';
 import { IntegrationsModule } from './integrations/integrations.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { PermissionsModule } from './permissions/permissions.module';
+import { PlatformModule } from './platform/platform.module';
 import { ProjectsModule } from './projects/projects.module';
 import { RolesModule } from './roles/roles.module';
 import { SessionsModule } from './sessions/sessions.module';
@@ -67,6 +69,8 @@ import { UsersModule } from './users/users.module';
     PermissionsModule,
     AnalyticsModule,
     IntegrationsModule,
+    EnterpriseModule,
+    PlatformModule,
     AutomationModule,
     CommunicationModule,
     CrmModule,

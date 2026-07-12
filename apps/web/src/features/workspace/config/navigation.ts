@@ -9,6 +9,7 @@ import {
   PlugZap,
   MessageSquareText,
   Settings,
+  ShieldCheck,
   Sparkles,
   Target,
   UsersRound,
@@ -128,6 +129,15 @@ export const workspaceNavigation: NavigationItem[] = [
     featureFlag: 'ai',
     badge: 'Ready',
     keywords: ['assistant', 'memory', 'briefing'],
+  },
+  {
+    title: 'Admin',
+    route: '/app/admin',
+    icon: ShieldCheck,
+    permission: 'Enterprise.Read',
+    featureFlag: 'admin',
+    badge: 'Enterprise',
+    keywords: ['admin', 'security', 'compliance', 'platform'],
   },
   {
     title: 'Settings',

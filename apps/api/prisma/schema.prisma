@@ -633,6 +633,132 @@ enum IntegrationEventType {
   WEBHOOK_SENT
 }
 
+enum EnterprisePolicyType {
+  SECURITY
+  ACCESS
+  DATA_RETENTION
+  COMPLIANCE
+  AI_GOVERNANCE
+  ADMINISTRATION
+}
+
+enum PolicyStatus {
+  DRAFT
+  ACTIVE
+  DISABLED
+  ARCHIVED
+}
+
+enum AuditSeverity {
+  INFO
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ComplianceFramework {
+  GDPR
+  SOC2
+  ISO27001
+  HIPAA
+  PCIDSS
+}
+
+enum ComplianceStatus {
+  READY
+  IN_PROGRESS
+  GAP
+  NOT_APPLICABLE
+}
+
+enum SSOProviderType {
+  SAML2
+  OPENID_CONNECT
+  OAUTH_ENTERPRISE
+  MICROSOFT_ENTRA
+  OKTA
+  GOOGLE_WORKSPACE
+  PING_IDENTITY
+  ONELOGIN
+}
+
+enum DirectoryProviderType {
+  SCIM
+  ACTIVE_DIRECTORY
+  LDAP
+  GOOGLE_DIRECTORY
+  MICROSOFT_GRAPH
+}
+
+enum RetentionAction {
+  RETAIN
+  ARCHIVE
+  DELETE
+  LEGAL_HOLD
+}
+
+enum LicenseStatus {
+  TRIAL
+  ACTIVE
+  SUSPENDED
+  EXPIRED
+  CANCELLED
+}
+
+enum PlatformStatus {
+  OPERATIONAL
+  DEGRADED
+  PARTIAL_OUTAGE
+  MAJOR_OUTAGE
+  MAINTENANCE
+}
+
+enum IncidentSeverity {
+  SEV1
+  SEV2
+  SEV3
+  SEV4
+}
+
+enum IncidentStatus {
+  INVESTIGATING
+  IDENTIFIED
+  MONITORING
+  RESOLVED
+  POSTMORTEM_PENDING
+  CLOSED
+}
+
+enum DeploymentStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  ROLLED_BACK
+}
+
+enum FeatureFlagScope {
+  GLOBAL
+  ORGANISATION
+  USER
+  ENVIRONMENT
+}
+
+enum CircuitBreakerState {
+  CLOSED
+  OPEN
+  HALF_OPEN
+}
+
+enum BackupStatus {
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  FAILED
+  VERIFIED
+}
+
 model User {
   id                        String                   @id @default(uuid()) @db.Uuid
   email                     String                   @unique
@@ -696,124 +822,150 @@ model User {
 }
 
 model Organisation {
-  id                     String                   @id @default(uuid()) @db.Uuid
-  name                   String
-  slug                   String                   @unique
-  industry               String?
-  companySize            String?
-  country                String?
-  timezone               String?
-  currency               String?
-  ownerId                String                   @db.Uuid
-  createdAt              DateTime                 @default(now())
-  updatedAt              DateTime                 @updatedAt
-  deletedAt              DateTime?
-  owner                  User                     @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
-  activeUsers            User[]                   @relation("ActiveOrganisation")
-  members                OrganisationMember[]
-  roles                  Role[]
-  invitations            Invitation[]
-  sessions               Session[]
-  refreshTokens          RefreshToken[]
-  auditLogs              AuditLog[]
-  companies              Company[]
-  contacts               Contact[]
-  leads                  Lead[]
-  opportunities          Opportunity[]
-  customerNotes          CustomerNote[]
-  customerFiles          CustomerFile[]
-  customerTags           CustomerTag[]
-  activities             CustomerActivity[]
-  projects               Project[]
-  tasks                  Task[]
-  projectLabels          ProjectLabel[]
-  projectFiles           ProjectFile[]
-  timeEntries            TimeEntry[]
-  projectBoards          ProjectBoard[]
-  projectActivities      ProjectActivity[]
-  projectComments        ProjectComment[]
-  folders                Folder[]
-  documents              Document[]
-  documentVersions       DocumentVersion[]
-  documentPermissions    DocumentPermission[]
-  documentActivities     DocumentActivity[]
-  documentTags           DocumentTag[]
-  documentLinks          DocumentLink[]
-  documentShares         DocumentShare[]
-  conversations          Conversation[]
-  conversationMembers    ConversationMember[]
-  messages               Message[]
-  messageAttachments     MessageAttachment[]
-  messageReactions       MessageReaction[]
-  messageReadReceipts    MessageReadReceipt[]
-  threads                Thread[]
-  announcements          Announcement[]
-  meetings               Meeting[]
-  meetingParticipants    MeetingParticipant[]
-  meetingNotes           MeetingNote[]
-  meetingRecordings      MeetingRecording[]
-  messageActivities      MessageActivity[]
-  notificationPrefs      NotificationPreference[]
-  workflows              Workflow[]
-  workflowVersions       WorkflowVersion[]
-  workflowExecutions     WorkflowExecution[]
-  workflowTriggers       WorkflowTrigger[]
-  workflowConditions     WorkflowCondition[]
-  workflowActions        WorkflowAction[]
-  workflowVariables      WorkflowVariable[]
-  workflowTemplates      WorkflowTemplate[]
-  workflowSchedules      WorkflowSchedule[]
-  workflowApprovals      WorkflowApproval[]
-  workflowLogs           WorkflowLog[]
-  workflowAudits         WorkflowAudit[]
-  workflowErrors         WorkflowError[]
-  invoices               Invoice[]
-  invoiceItems           InvoiceItem[]
-  quotes                 Quote[]
-  quoteItems             QuoteItem[]
-  expenses               Expense[]
-  expenseCategories      ExpenseCategory[]
-  payments               Payment[]
-  purchaseOrders         PurchaseOrder[]
-  purchaseOrderItems     PurchaseOrderItem[]
-  recurringInvoices      RecurringInvoice[]
-  subscriptions          Subscription[]
-  budgets                Budget[]
-  transactions           Transaction[]
-  accounts               Account[]
-  taxRates               TaxRate[]
-  currencies             Currency[]
-  financialReports       FinancialReport[]
-  cashFlowEntries        CashFlowEntry[]
-  journalEntries         JournalEntry[]
-  financeAudits          FinanceAudit[]
-  dashboards             Dashboard[]
-  dashboardWidgets       DashboardWidget[]
-  metrics                Metric[]
-  metricValues           MetricValue[]
-  kpis                   KPI[]
-  analyticsReports       Report[]
-  reportSchedules        ReportSchedule[]
-  dataSources            DataSource[]
-  chartConfigurations    ChartConfiguration[]
-  forecasts              Forecast[]
-  businessSnapshots      BusinessSnapshot[]
-  analyticsEvents        AnalyticsEvent[]
-  analyticsFilters       AnalyticsFilter[]
-  savedViews             SavedView[]
-  integrations           Integration[]
-  integrationTypes       IntegrationType[]
-  integrationCredentials IntegrationCredential[]
-  integrationConnections IntegrationConnection[]
-  integrationSyncs       IntegrationSync[]
-  webhookEndpoints       WebhookEndpoint[]
-  webhookDeliveries      WebhookDelivery[]
-  connectors             Connector[]
-  connectorActions       ConnectorAction[]
-  syncLogs               SyncLog[]
-  integrationHealth      IntegrationHealth[]
-  integrationEvents      IntegrationEvent[]
-  apiKeys                APIKey[]
+  id                           String                   @id @default(uuid()) @db.Uuid
+  name                         String
+  slug                         String                   @unique
+  industry                     String?
+  companySize                  String?
+  country                      String?
+  timezone                     String?
+  currency                     String?
+  ownerId                      String                   @db.Uuid
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+  deletedAt                    DateTime?
+  owner                        User                     @relation("OrganisationOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  activeUsers                  User[]                   @relation("ActiveOrganisation")
+  members                      OrganisationMember[]
+  roles                        Role[]
+  invitations                  Invitation[]
+  sessions                     Session[]
+  refreshTokens                RefreshToken[]
+  auditLogs                    AuditLog[]
+  companies                    Company[]
+  contacts                     Contact[]
+  leads                        Lead[]
+  opportunities                Opportunity[]
+  customerNotes                CustomerNote[]
+  customerFiles                CustomerFile[]
+  customerTags                 CustomerTag[]
+  activities                   CustomerActivity[]
+  projects                     Project[]
+  tasks                        Task[]
+  projectLabels                ProjectLabel[]
+  projectFiles                 ProjectFile[]
+  timeEntries                  TimeEntry[]
+  projectBoards                ProjectBoard[]
+  projectActivities            ProjectActivity[]
+  projectComments              ProjectComment[]
+  folders                      Folder[]
+  documents                    Document[]
+  documentVersions             DocumentVersion[]
+  documentPermissions          DocumentPermission[]
+  documentActivities           DocumentActivity[]
+  documentTags                 DocumentTag[]
+  documentLinks                DocumentLink[]
+  documentShares               DocumentShare[]
+  conversations                Conversation[]
+  conversationMembers          ConversationMember[]
+  messages                     Message[]
+  messageAttachments           MessageAttachment[]
+  messageReactions             MessageReaction[]
+  messageReadReceipts          MessageReadReceipt[]
+  threads                      Thread[]
+  announcements                Announcement[]
+  meetings                     Meeting[]
+  meetingParticipants          MeetingParticipant[]
+  meetingNotes                 MeetingNote[]
+  meetingRecordings            MeetingRecording[]
+  messageActivities            MessageActivity[]
+  notificationPrefs            NotificationPreference[]
+  workflows                    Workflow[]
+  workflowVersions             WorkflowVersion[]
+  workflowExecutions           WorkflowExecution[]
+  workflowTriggers             WorkflowTrigger[]
+  workflowConditions           WorkflowCondition[]
+  workflowActions              WorkflowAction[]
+  workflowVariables            WorkflowVariable[]
+  workflowTemplates            WorkflowTemplate[]
+  workflowSchedules            WorkflowSchedule[]
+  workflowApprovals            WorkflowApproval[]
+  workflowLogs                 WorkflowLog[]
+  workflowAudits               WorkflowAudit[]
+  workflowErrors               WorkflowError[]
+  invoices                     Invoice[]
+  invoiceItems                 InvoiceItem[]
+  quotes                       Quote[]
+  quoteItems                   QuoteItem[]
+  expenses                     Expense[]
+  expenseCategories            ExpenseCategory[]
+  payments                     Payment[]
+  purchaseOrders               PurchaseOrder[]
+  purchaseOrderItems           PurchaseOrderItem[]
+  recurringInvoices            RecurringInvoice[]
+  subscriptions                Subscription[]
+  budgets                      Budget[]
+  transactions                 Transaction[]
+  accounts                     Account[]
+  taxRates                     TaxRate[]
+  currencies                   Currency[]
+  financialReports             FinancialReport[]
+  cashFlowEntries              CashFlowEntry[]
+  journalEntries               JournalEntry[]
+  financeAudits                FinanceAudit[]
+  dashboards                   Dashboard[]
+  dashboardWidgets             DashboardWidget[]
+  metrics                      Metric[]
+  metricValues                 MetricValue[]
+  kpis                         KPI[]
+  analyticsReports             Report[]
+  reportSchedules              ReportSchedule[]
+  dataSources                  DataSource[]
+  chartConfigurations          ChartConfiguration[]
+  forecasts                    Forecast[]
+  businessSnapshots            BusinessSnapshot[]
+  analyticsEvents              AnalyticsEvent[]
+  analyticsFilters             AnalyticsFilter[]
+  savedViews                   SavedView[]
+  integrations                 Integration[]
+  integrationTypes             IntegrationType[]
+  integrationCredentials       IntegrationCredential[]
+  integrationConnections       IntegrationConnection[]
+  integrationSyncs             IntegrationSync[]
+  webhookEndpoints             WebhookEndpoint[]
+  webhookDeliveries            WebhookDelivery[]
+  connectors                   Connector[]
+  connectorActions             ConnectorAction[]
+  syncLogs                     SyncLog[]
+  integrationHealth            IntegrationHealth[]
+  integrationEvents            IntegrationEvent[]
+  apiKeys                      APIKey[]
+  businessUnits                BusinessUnit[]
+  hierarchyRecords             OrganisationHierarchy[]  @relation("HierarchyOwner")
+  organisationHierarchies      OrganisationHierarchy[]  @relation("HierarchyParent")
+  childOrganisationHierarchies OrganisationHierarchy[]  @relation("HierarchyChild")
+  enterprisePolicies           EnterprisePolicy[]
+  auditEvents                  AuditEvent[]
+  securityPolicies             SecurityPolicy[]
+  customRoles                  CustomRole[]
+  permissionGroups             PermissionGroup[]
+  ssoProviders                 SSOProvider[]
+  directoryConnections         DirectoryConnection[]
+  complianceRecords            ComplianceRecord[]
+  retentionPolicies            RetentionPolicy[]
+  legalHolds                   LegalHold[]
+  licenses                     License[]
+  platformHealthChecks         PlatformHealthCheck[]
+  platformMetrics              PlatformMetric[]
+  incidents                    Incident[]
+  incidentTimeline             IncidentTimeline[]
+  deploymentRecords            DeploymentRecord[]
+  featureFlags                 FeatureFlag[]
+  backupRecords                BackupRecord[]
+  recoveryActions              RecoveryAction[]
+  circuitBreakers              CircuitBreaker[]
+  jobQueueSnapshots            JobQueueSnapshot[]
+  costRecords                  CostRecord[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -3456,4 +3608,507 @@ model APIKey {
   @@index([organisationId, expiresAt])
   @@index([organisationId, revokedAt])
   @@index([organisationId, deletedAt])
+}
+
+model BusinessUnit {
+  id             String         @id @default(uuid()) @db.Uuid
+  organisationId String         @db.Uuid
+  parentId       String?        @db.Uuid
+  name           String
+  code           String?
+  description    String?
+  leaderUserId   String?        @db.Uuid
+  settings       Json?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  parent         BusinessUnit?  @relation("BusinessUnitTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children       BusinessUnit[] @relation("BusinessUnitTree")
+
+  @@unique([organisationId, code])
+  @@index([organisationId, parentId])
+  @@index([organisationId, leaderUserId])
+  @@index([organisationId, deletedAt])
+}
+
+model OrganisationHierarchy {
+  id                   String       @id @default(uuid()) @db.Uuid
+  organisationId       String       @db.Uuid
+  parentOrganisationId String       @db.Uuid
+  childOrganisationId  String       @db.Uuid
+  relationshipType     String       @default("CHILD")
+  inheritedPermissions Boolean      @default(true)
+  delegatedAdmin       Boolean      @default(false)
+  metadata             Json?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+  deletedAt            DateTime?
+  organisation         Organisation @relation("HierarchyOwner", fields: [organisationId], references: [id], onDelete: Cascade)
+  parentOrganisation   Organisation @relation("HierarchyParent", fields: [parentOrganisationId], references: [id], onDelete: Cascade)
+  childOrganisation    Organisation @relation("HierarchyChild", fields: [childOrganisationId], references: [id], onDelete: Cascade)
+
+  @@unique([parentOrganisationId, childOrganisationId])
+  @@index([organisationId])
+  @@index([parentOrganisationId])
+  @@index([childOrganisationId])
+  @@index([organisationId, deletedAt])
+}
+
+model EnterprisePolicy {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  type           EnterprisePolicyType
+  name           String
+  status         PolicyStatus         @default(DRAFT)
+  version        Int                  @default(1)
+  rules          Json
+  effectiveFrom  DateTime?
+  createdById    String?              @db.Uuid
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, type])
+  @@index([organisationId, status])
+  @@index([organisationId, deletedAt])
+}
+
+model AuditEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String        @db.Uuid
+  actorUserId    String?       @db.Uuid
+  severity       AuditSeverity @default(INFO)
+  action         String
+  module         String
+  entityType     String?
+  entityId       String?       @db.Uuid
+  requestId      String?
+  ipAddress      String?
+  userAgent      String?
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, actorUserId])
+  @@index([organisationId, module, action])
+  @@index([organisationId, severity])
+  @@index([organisationId, createdAt])
+  @@index([organisationId, deletedAt])
+}
+
+model SecurityPolicy {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  name           String
+  status         PolicyStatus @default(DRAFT)
+  mfaRequired    Boolean      @default(false)
+  passwordRules  Json?
+  ipAllowList    String[]
+  trustedDevices Json?
+  sessionRules   Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, status])
+  @@index([organisationId, deletedAt])
+}
+
+model CustomRole {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  parentRoleId   String?      @db.Uuid
+  name           String
+  description    String?
+  permissions    String[]
+  temporaryRules Json?
+  approvalRules  Json?
+  delegatedAdmin Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  parentRole     CustomRole?  @relation("CustomRoleInheritance", fields: [parentRoleId], references: [id], onDelete: SetNull)
+  childRoles     CustomRole[] @relation("CustomRoleInheritance")
+
+  @@unique([organisationId, name])
+  @@index([organisationId, parentRoleId])
+  @@index([organisationId, delegatedAdmin])
+  @@index([organisationId, deletedAt])
+}
+
+model PermissionGroup {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  name           String
+  description    String?
+  permissions    String[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, name])
+  @@index([organisationId, deletedAt])
+}
+
+model SSOProvider {
+  id             String          @id @default(uuid()) @db.Uuid
+  organisationId String          @db.Uuid
+  type           SSOProviderType
+  name           String
+  enabled        Boolean         @default(false)
+  domains        String[]
+  metadata       Json?
+  config         Json?
+  lastTestedAt   DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, type])
+  @@index([organisationId, enabled])
+  @@index([organisationId, deletedAt])
+}
+
+model DirectoryConnection {
+  id             String                @id @default(uuid()) @db.Uuid
+  organisationId String                @db.Uuid
+  type           DirectoryProviderType
+  name           String
+  enabled        Boolean               @default(false)
+  provisioning   Boolean               @default(false)
+  deprovisioning Boolean               @default(false)
+  config         Json?
+  lastSyncAt     DateTime?
+  nextSyncAt     DateTime?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, type])
+  @@index([organisationId, enabled])
+  @@index([organisationId, nextSyncAt])
+  @@index([organisationId, deletedAt])
+}
+
+model ComplianceRecord {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String              @db.Uuid
+  framework      ComplianceFramework
+  status         ComplianceStatus    @default(IN_PROGRESS)
+  control        String
+  evidence       Json?
+  ownerUserId    String?             @db.Uuid
+  reviewedAt     DateTime?
+  dueAt          DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, framework])
+  @@index([organisationId, status])
+  @@index([organisationId, dueAt])
+  @@index([organisationId, deletedAt])
+}
+
+model RetentionPolicy {
+  id              String          @id @default(uuid()) @db.Uuid
+  organisationId  String          @db.Uuid
+  name            String
+  entityType      String
+  action          RetentionAction
+  durationDays    Int?
+  enabled         Boolean         @default(true)
+  legalHoldBypass Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  deletedAt       DateTime?
+  organisation    Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, entityType])
+  @@index([organisationId, enabled])
+  @@index([organisationId, deletedAt])
+}
+
+model LegalHold {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  name           String
+  reason         String
+  entityType     String?
+  entityId       String?      @db.Uuid
+  active         Boolean      @default(true)
+  startsAt       DateTime     @default(now())
+  endsAt         DateTime?
+  createdById    String?      @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, active])
+  @@index([organisationId, entityType, entityId])
+  @@index([organisationId, deletedAt])
+}
+
+model License {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String        @db.Uuid
+  plan           String
+  status         LicenseStatus @default(TRIAL)
+  seats          Int           @default(1)
+  usedSeats      Int           @default(0)
+  startsAt       DateTime      @default(now())
+  expiresAt      DateTime?
+  features       String[]
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, status])
+  @@index([organisationId, expiresAt])
+  @@index([organisationId, deletedAt])
+}
+
+model PlatformHealthCheck {
+  id             String         @id @default(uuid()) @db.Uuid
+  organisationId String?        @db.Uuid
+  service        String
+  status         PlatformStatus @default(OPERATIONAL)
+  responseTimeMs Int?
+  details        Json?
+  checkedAt      DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?  @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, service])
+  @@index([organisationId, status])
+  @@index([checkedAt])
+  @@index([deletedAt])
+}
+
+model PlatformMetric {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String?       @db.Uuid
+  name           String
+  value          Decimal       @db.Decimal(18, 4)
+  unit           String?
+  dimensions     Json?
+  recordedAt     DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, name])
+  @@index([recordedAt])
+  @@index([deletedAt])
+}
+
+model Incident {
+  id               String             @id @default(uuid()) @db.Uuid
+  organisationId   String?            @db.Uuid
+  title            String
+  description      String?
+  severity         IncidentSeverity
+  status           IncidentStatus     @default(INVESTIGATING)
+  affectedServices String[]
+  startedAt        DateTime           @default(now())
+  detectedAt       DateTime           @default(now())
+  resolvedAt       DateTime?
+  ownerUserId      String?            @db.Uuid
+  rootCause        String?
+  customerImpact   String?
+  resolution       String?
+  followUps        Json?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  deletedAt        DateTime?
+  organisation     Organisation?      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  timeline         IncidentTimeline[]
+
+  @@index([organisationId, severity])
+  @@index([organisationId, status])
+  @@index([startedAt])
+  @@index([deletedAt])
+}
+
+model IncidentTimeline {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String?       @db.Uuid
+  incidentId     String        @db.Uuid
+  actorUserId    String?       @db.Uuid
+  eventType      String
+  message        String
+  metadata       Json?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  incident       Incident      @relation(fields: [incidentId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, incidentId])
+  @@index([incidentId, createdAt])
+  @@index([deletedAt])
+}
+
+model DeploymentRecord {
+  id                String           @id @default(uuid()) @db.Uuid
+  organisationId    String?          @db.Uuid
+  version           String
+  commitSha         String?
+  environment       String
+  initiatedBy       String?
+  status            DeploymentStatus @default(PENDING)
+  migrationResult   Json?
+  healthCheckResult Json?
+  rollbackStatus    String?
+  startedAt         DateTime         @default(now())
+  completedAt       DateTime?
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+  deletedAt         DateTime?
+  organisation      Organisation?    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, environment])
+  @@index([status])
+  @@index([startedAt])
+  @@index([deletedAt])
+}
+
+model FeatureFlag {
+  id             String           @id @default(uuid()) @db.Uuid
+  organisationId String?          @db.Uuid
+  key            String
+  name           String
+  scope          FeatureFlagScope @default(GLOBAL)
+  enabled        Boolean          @default(false)
+  rolloutPercent Int              @default(0)
+  rules          Json?
+  killSwitch     Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, key])
+  @@index([scope, enabled])
+  @@index([organisationId, deletedAt])
+}
+
+model BackupRecord {
+  id                 String        @id @default(uuid()) @db.Uuid
+  organisationId     String?       @db.Uuid
+  name               String
+  status             BackupStatus  @default(SCHEDULED)
+  target             String
+  sizeBytes          BigInt?
+  encrypted          Boolean       @default(true)
+  retentionDays      Int?
+  verificationResult Json?
+  restoreTestedAt    DateTime?
+  startedAt          DateTime?
+  completedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  deletedAt          DateTime?
+  organisation       Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, status])
+  @@index([target])
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model RecoveryAction {
+  id             String           @id @default(uuid()) @db.Uuid
+  organisationId String?          @db.Uuid
+  action         String
+  reason         String
+  safe           Boolean          @default(true)
+  status         DeploymentStatus @default(PENDING)
+  verification   Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, action])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model CircuitBreaker {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String?             @db.Uuid
+  service        String
+  state          CircuitBreakerState @default(CLOSED)
+  failureCount   Int                 @default(0)
+  lastFailureAt  DateTime?
+  openedAt       DateTime?
+  halfOpenedAt   DateTime?
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, service])
+  @@index([state])
+  @@index([deletedAt])
+}
+
+model JobQueueSnapshot {
+  id                String        @id @default(uuid()) @db.Uuid
+  organisationId    String?       @db.Uuid
+  queueName         String
+  waiting           Int           @default(0)
+  active            Int           @default(0)
+  completed         Int           @default(0)
+  failed            Int           @default(0)
+  delayed           Int           @default(0)
+  deadLettered      Int           @default(0)
+  averageDurationMs Int?
+  failureRate       Decimal?      @db.Decimal(6, 4)
+  recordedAt        DateTime      @default(now())
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  deletedAt         DateTime?
+  organisation      Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, queueName])
+  @@index([recordedAt])
+  @@index([deletedAt])
+}
+
+model CostRecord {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String?       @db.Uuid
+  category       String
+  provider       String?
+  amount         Decimal       @db.Decimal(18, 4)
+  currency       String        @default("USD")
+  usage          Json?
+  recordedAt     DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, category])
+  @@index([recordedAt])
+  @@index([deletedAt])
 }

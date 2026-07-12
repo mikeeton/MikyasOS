@@ -69,6 +69,13 @@ export const DEFAULT_PERMISSIONS = [
   'Integrations.Manage',
   'Integrations.Sync',
   'Integrations.Webhooks',
+  'Enterprise.Read',
+  'Enterprise.Manage',
+  'Enterprise.Security',
+  'Enterprise.Audit',
+  'Platform.Read',
+  'Platform.Manage',
+  'Platform.Operate',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

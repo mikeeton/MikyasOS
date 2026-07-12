@@ -75,6 +75,8 @@ export type IntegrationsQuery = AutomationQuery & {
   status?: string;
 };
 
+export type AdminQuery = AutomationQuery;
+
 export type CrmTag = {
   id: string;
   name: string;
@@ -1979,6 +1981,142 @@ export const integrationsApi = {
     }),
   oauth: (token: string, organisationId: string, provider: string) =>
     apiRequest<OAuthArchitecture>(`/integrations/oauth/${provider}/architecture`, {
+      token,
+      organisationId,
+    }),
+};
+
+export type AdminRecord = {
+  id: string;
+  name?: string;
+  title?: string;
+  status?: string;
+  severity?: string;
+  action?: string;
+  module?: string;
+  service?: string;
+  createdAt: string;
+};
+
+export type EnterpriseDashboard = {
+  organisationHealth: string;
+  businessUnits: number;
+  customRoles: number;
+  auditEvents: number;
+  complianceGaps: number;
+  policies: number;
+  ssoProviders: number;
+  directoryConnections: number;
+  activeSessions: number;
+  licenseUsage: { plan: string; seats: number; usedSeats: number };
+  aiSystemStatus: string;
+};
+
+export type PlatformOverview = {
+  status: string;
+  activeIncidents: number;
+  backupStatus: string;
+  failedJobs: number;
+  activeFeatureFlags: number;
+  estimatedCost: number;
+  errorRate: number;
+  latencyMs: number;
+  health: Record<string, unknown>;
+};
+
+export const enterpriseApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<Record<string, unknown>>('/enterprise/capabilities', { token, organisationId }),
+  dashboard: (token: string, organisationId: string) =>
+    apiRequest<EnterpriseDashboard>('/enterprise/dashboard', { token, organisationId }),
+  businessUnits: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/enterprise/business-units${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  roles: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/enterprise/roles${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  policies: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/enterprise/policies${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  audit: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/enterprise/audit${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  compliance: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/enterprise/compliance${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createBusinessUnit: (
+    token: string,
+    organisationId: string,
+    body: { name: string; code?: string },
+  ) =>
+    apiRequest<AdminRecord>('/enterprise/business-units', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  createRole: (
+    token: string,
+    organisationId: string,
+    body: { name: string; permissions: string[] },
+  ) =>
+    apiRequest<AdminRecord>('/enterprise/roles', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+};
+
+export const platformApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<Record<string, unknown>>('/platform/capabilities', { token, organisationId }),
+  overview: (token: string, organisationId: string) =>
+    apiRequest<PlatformOverview>('/platform/overview', { token, organisationId }),
+  healthDetails: (token: string, organisationId: string) =>
+    apiRequest<Record<string, unknown>>('/health/details', { token, organisationId }),
+  health: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/health${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  incidents: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/incidents${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  backups: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/backups${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  deployments: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/deployments${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  featureFlags: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/feature-flags${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  jobs: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/jobs${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  costs: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/platform/costs${toQueryString(query)}`, {
       token,
       organisationId,
     }),

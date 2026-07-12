@@ -397,6 +397,76 @@ const IntegrationSettingsPage = lazy(() =>
     default: module.IntegrationSettingsPage,
   })),
 );
+const AdminDashboardPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminDashboardPage,
+  })),
+);
+const BusinessUnitsPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.BusinessUnitsPage,
+  })),
+);
+const AdminRolesPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminRolesPage,
+  })),
+);
+const AdminPoliciesPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminPoliciesPage,
+  })),
+);
+const AuditViewerPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AuditViewerPage,
+  })),
+);
+const SecurityCentrePage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.SecurityCentrePage,
+  })),
+);
+const ComplianceDashboardPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.ComplianceDashboardPage,
+  })),
+);
+const LicensingPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.LicensingPage,
+  })),
+);
+const AdminPlaceholderPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminPlaceholderPage,
+  })),
+);
+const PlatformDashboardPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.PlatformDashboardPage,
+  })),
+);
+const PlatformHealthPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.PlatformHealthPage,
+  })),
+);
+const PlatformRecordsPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.PlatformRecordsPage,
+  })),
+);
+const PlatformIntegrationsHealthPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.PlatformIntegrationsHealthPage,
+  })),
+);
+const AiHealthPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AiHealthPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -771,6 +841,94 @@ export const router = createBrowserRouter([
           {
             path: 'integrations/:id',
             element: withSuspense(<IntegrationDetailPage />),
+          },
+          {
+            path: 'admin',
+            element: withSuspense(<AdminDashboardPage />),
+          },
+          {
+            path: 'admin/organisations',
+            element: withSuspense(<AdminPlaceholderPage title="Organisation hierarchy" />),
+          },
+          {
+            path: 'admin/business-units',
+            element: withSuspense(<BusinessUnitsPage />),
+          },
+          {
+            path: 'admin/users',
+            element: withSuspense(<AdminPlaceholderPage title="Enterprise users" />),
+          },
+          {
+            path: 'admin/roles',
+            element: withSuspense(<AdminRolesPage />),
+          },
+          {
+            path: 'admin/policies',
+            element: withSuspense(<AdminPoliciesPage />),
+          },
+          {
+            path: 'admin/audit',
+            element: withSuspense(<AuditViewerPage />),
+          },
+          {
+            path: 'admin/security',
+            element: withSuspense(<SecurityCentrePage />),
+          },
+          {
+            path: 'admin/compliance',
+            element: withSuspense(<ComplianceDashboardPage />),
+          },
+          {
+            path: 'admin/licensing',
+            element: withSuspense(<LicensingPage />),
+          },
+          {
+            path: 'admin/platform',
+            element: withSuspense(<PlatformDashboardPage />),
+          },
+          {
+            path: 'admin/platform/health',
+            element: withSuspense(<PlatformHealthPage />),
+          },
+          {
+            path: 'admin/platform/metrics',
+            element: withSuspense(<PlatformRecordsPage title="Metrics" resource="health" />),
+          },
+          {
+            path: 'admin/platform/jobs',
+            element: withSuspense(<PlatformRecordsPage title="Job monitoring" resource="jobs" />),
+          },
+          {
+            path: 'admin/platform/incidents',
+            element: withSuspense(<PlatformRecordsPage title="Incidents" resource="incidents" />),
+          },
+          {
+            path: 'admin/platform/backups',
+            element: withSuspense(<PlatformRecordsPage title="Backups" resource="backups" />),
+          },
+          {
+            path: 'admin/platform/deployments',
+            element: withSuspense(
+              <PlatformRecordsPage title="Deployments" resource="deployments" />,
+            ),
+          },
+          {
+            path: 'admin/platform/feature-flags',
+            element: withSuspense(
+              <PlatformRecordsPage title="Feature flags" resource="featureFlags" />,
+            ),
+          },
+          {
+            path: 'admin/platform/integrations',
+            element: withSuspense(<PlatformIntegrationsHealthPage />),
+          },
+          {
+            path: 'admin/platform/ai-health',
+            element: withSuspense(<AiHealthPage />),
+          },
+          {
+            path: 'admin/platform/costs',
+            element: withSuspense(<PlatformRecordsPage title="Costs" resource="costs" />),
           },
         ],
       },
