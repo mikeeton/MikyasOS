@@ -1,7 +1,6 @@
 import { lazy, Suspense, type ReactNode } from 'react';
 import { createBrowserRouter } from 'react-router';
 
-import { AppShell } from '@/components/layout/app-shell';
 import { AcceptInvitePage } from '@/features/auth/accept-invite-page';
 import { ForgotPasswordPage, ResetPasswordPage } from '@/features/auth/password-pages';
 import { LoginPage } from '@/features/auth/login-page';
@@ -467,6 +466,66 @@ const AiHealthPage = lazy(() =>
     default: module.AiHealthPage,
   })),
 );
+const HomePage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.HomePage,
+  })),
+);
+const MarketingPage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.MarketingPage,
+  })),
+);
+const PricingPage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.PricingPage,
+  })),
+);
+const LegalPage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.LegalPage,
+  })),
+);
+const HelpCentrePage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.HelpCentrePage,
+  })),
+);
+const ContactPage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.ContactPage,
+  })),
+);
+const BlogPage = lazy(() =>
+  import('@/features/launch/pages/marketing-pages').then((module) => ({
+    default: module.BlogPage,
+  })),
+);
+const BillingDashboardPage = lazy(() =>
+  import('@/features/launch/pages/billing-pages').then((module) => ({
+    default: module.BillingDashboardPage,
+  })),
+);
+const CustomerOnboardingPage = lazy(() =>
+  import('@/features/launch/pages/billing-pages').then((module) => ({
+    default: module.CustomerOnboardingPage,
+  })),
+);
+const BillingRecordsPage = lazy(() =>
+  import('@/features/launch/pages/billing-pages').then((module) => ({
+    default: module.BillingRecordsPage,
+  })),
+);
+const LaunchChecklistPage = lazy(() =>
+  import('@/features/launch/pages/billing-pages').then((module) => ({
+    default: module.LaunchChecklistPage,
+  })),
+);
+const DataPortabilityPage = lazy(() =>
+  import('@/features/launch/pages/billing-pages').then((module) => ({
+    default: module.DataPortabilityPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -485,7 +544,83 @@ function withSuspense(children: ReactNode) {
 export const router = createBrowserRouter([
   {
     path: '/',
-    element: <AppShell />,
+    element: withSuspense(<HomePage />),
+  },
+  {
+    path: '/features',
+    element: withSuspense(<MarketingPage page="features" />),
+  },
+  {
+    path: '/ai',
+    element: withSuspense(<MarketingPage page="ai" />),
+  },
+  {
+    path: '/crm',
+    element: withSuspense(<MarketingPage page="crm" />),
+  },
+  {
+    path: '/projects',
+    element: withSuspense(<MarketingPage page="projects" />),
+  },
+  {
+    path: '/documents',
+    element: withSuspense(<MarketingPage page="documents" />),
+  },
+  {
+    path: '/automation',
+    element: withSuspense(<MarketingPage page="automation" />),
+  },
+  {
+    path: '/pricing',
+    element: withSuspense(<PricingPage />),
+  },
+  {
+    path: '/enterprise',
+    element: withSuspense(<MarketingPage page="enterprise" />),
+  },
+  {
+    path: '/about',
+    element: withSuspense(<MarketingPage page="about" />),
+  },
+  {
+    path: '/careers',
+    element: withSuspense(<MarketingPage page="careers" />),
+  },
+  {
+    path: '/security',
+    element: withSuspense(<MarketingPage page="security" />),
+  },
+  {
+    path: '/privacy',
+    element: withSuspense(<LegalPage type="privacy" />),
+  },
+  {
+    path: '/terms',
+    element: withSuspense(<LegalPage type="terms" />),
+  },
+  {
+    path: '/cookies',
+    element: withSuspense(<LegalPage type="cookies" />),
+  },
+  {
+    path: '/acceptable-use',
+    element: withSuspense(<LegalPage type="acceptable" />),
+  },
+  {
+    path: '/dpa',
+    element: withSuspense(<LegalPage type="dpa" />),
+  },
+  {
+    path: '/contact',
+    element: withSuspense(<ContactPage />),
+  },
+  {
+    path: '/blog',
+    element: withSuspense(<BlogPage />),
+  },
+  {
+    path: '/help',
+    element: withSuspense(<HelpCentrePage />),
   },
   {
     path: '/login',
@@ -529,6 +664,50 @@ export const router = createBrowserRouter([
           {
             path: 'settings',
             element: withSuspense(<WorkspaceSettingsPage />),
+          },
+          {
+            path: 'customer-onboarding',
+            element: withSuspense(<CustomerOnboardingPage />),
+          },
+          {
+            path: 'billing',
+            element: withSuspense(<BillingDashboardPage />),
+          },
+          {
+            path: 'billing/subscriptions',
+            element: withSuspense(
+              <BillingRecordsPage title="Subscriptions" resource="subscriptions" />,
+            ),
+          },
+          {
+            path: 'billing/usage',
+            element: withSuspense(<BillingRecordsPage title="Usage tracking" resource="usage" />),
+          },
+          {
+            path: 'billing/checkout',
+            element: withSuspense(
+              <BillingRecordsPage title="Checkout sessions" resource="checkout" />,
+            ),
+          },
+          {
+            path: 'billing/portal',
+            element: withSuspense(<BillingRecordsPage title="Customer portal" resource="portal" />),
+          },
+          {
+            path: 'billing/imports',
+            element: withSuspense(<BillingRecordsPage title="Imports" resource="imports" />),
+          },
+          {
+            path: 'billing/exports',
+            element: withSuspense(<BillingRecordsPage title="Exports" resource="exports" />),
+          },
+          {
+            path: 'billing/checklist',
+            element: withSuspense(<LaunchChecklistPage />),
+          },
+          {
+            path: 'billing/data-portability',
+            element: withSuspense(<DataPortabilityPage />),
           },
           {
             path: 'crm',

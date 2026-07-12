@@ -4,6 +4,7 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   CircleDollarSign,
+  CreditCard,
   FileText,
   Gauge,
   PlugZap,
@@ -138,6 +139,15 @@ export const workspaceNavigation: NavigationItem[] = [
     featureFlag: 'admin',
     badge: 'Enterprise',
     keywords: ['admin', 'security', 'compliance', 'platform'],
+  },
+  {
+    title: 'Billing',
+    route: '/app/billing',
+    icon: CreditCard,
+    permission: 'Billing.Read',
+    featureFlag: 'billing',
+    badge: 'Launch',
+    keywords: ['subscription', 'pricing', 'usage', 'checkout', 'portal'],
   },
   {
     title: 'Settings',

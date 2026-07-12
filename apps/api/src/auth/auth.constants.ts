@@ -76,6 +76,10 @@ export const DEFAULT_PERMISSIONS = [
   'Platform.Read',
   'Platform.Manage',
   'Platform.Operate',
+  'Billing.Read',
+  'Billing.Manage',
+  'Billing.Checkout',
+  'Billing.Usage',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

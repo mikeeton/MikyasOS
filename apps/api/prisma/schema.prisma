@@ -759,6 +759,106 @@ enum BackupStatus {
   VERIFIED
 }
 
+enum PlanTier {
+  STARTER
+  PROFESSIONAL
+  BUSINESS
+  ENTERPRISE
+}
+
+enum BillingProvider {
+  STRIPE
+  PADDLE
+  LEMON_SQUEEZY
+  MANUAL
+}
+
+enum BillingInterval {
+  MONTHLY
+  ANNUAL
+}
+
+enum SaasSubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum CheckoutStatus {
+  DRAFT
+  OPEN
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+enum UsageMetric {
+  STORAGE
+  AI_TOKENS
+  PROJECTS
+  CRM_RECORDS
+  DOCUMENTS
+  USERS
+  AUTOMATION_EXECUTIONS
+  INTEGRATIONS
+  API_REQUESTS
+  WEBHOOKS
+}
+
+enum ImportStatus {
+  QUEUED
+  VALIDATING
+  IMPORTING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum ExportStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  EXPIRED
+}
+
+enum DataFormat {
+  CSV
+  EXCEL
+  PDF
+  JSON
+  ORGANISATION_BACKUP
+}
+
+enum OnboardingStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  SKIPPED
+}
+
+enum EmailTemplateType {
+  WELCOME
+  INVITATION
+  PASSWORD_RESET
+  VERIFICATION
+  INVOICE
+  TRIAL_ENDING
+  SUBSCRIPTION_UPGRADED
+  SUBSCRIPTION_CANCELLED
+}
+
+enum LegalDocumentType {
+  PRIVACY_POLICY
+  TERMS_OF_SERVICE
+  COOKIE_POLICY
+  ACCEPTABLE_USE_POLICY
+  DATA_PROCESSING_AGREEMENT
+}
+
 model User {
   id                        String                   @id @default(uuid()) @db.Uuid
   email                     String                   @unique
@@ -966,6 +1066,19 @@ model Organisation {
   circuitBreakers              CircuitBreaker[]
   jobQueueSnapshots            JobQueueSnapshot[]
   costRecords                  CostRecord[]
+  billingCustomers             BillingCustomer[]
+  plans                        Plan[]
+  saasSubscriptions            SaasSubscription[]
+  usageRecords                 UsageRecord[]
+  checkoutSessions             CheckoutSession[]
+  customerPortalSessions       CustomerPortalSession[]
+  billingInvoices              BillingInvoice[]
+  dataImports                  DataImport[]
+  dataExports                  DataExport[]
+  onboardingProgress           OnboardingProgress[]
+  emailTemplates               EmailTemplate[]
+  legalDocuments               LegalDocument[]
+  launchChecklistItems         LaunchChecklistItem[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -4110,5 +4223,307 @@ model CostRecord {
 
   @@index([organisationId, category])
   @@index([recordedAt])
+  @@index([deletedAt])
+}
+
+model BillingCustomer {
+  id                 String          @id @default(uuid()) @db.Uuid
+  organisationId     String          @db.Uuid
+  provider           BillingProvider @default(MANUAL)
+  providerCustomerId String?
+  billingEmail       String?
+  companyName        String?
+  taxId              String?
+  address            Json?
+  metadata           Json?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  deletedAt          DateTime?
+  organisation       Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, provider])
+  @@index([provider, providerCustomerId])
+  @@index([organisationId, deletedAt])
+}
+
+model Plan {
+  id                 String             @id @default(uuid()) @db.Uuid
+  organisationId     String?            @db.Uuid
+  tier               PlanTier
+  name               String
+  description        String?
+  monthlyPrice       Decimal            @default(0) @db.Decimal(10, 2)
+  annualPrice        Decimal            @default(0) @db.Decimal(10, 2)
+  currency           String             @default("USD")
+  maxUsers           Int
+  storageGb          Int
+  aiTokensMonthly    Int
+  automationsMonthly Int
+  projectsLimit      Int
+  documentsLimit     Int
+  apiAccess          Boolean            @default(false)
+  supportLevel       String
+  enterpriseFeatures Boolean            @default(false)
+  features           String[]
+  metadata           Json?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  deletedAt          DateTime?
+  organisation       Organisation?      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  saasSubscriptions  SaasSubscription[]
+  checkoutSessions   CheckoutSession[]
+
+  @@unique([organisationId, tier])
+  @@index([tier])
+  @@index([organisationId, deletedAt])
+}
+
+model SaasSubscription {
+  id                     String                 @id @default(uuid()) @db.Uuid
+  organisationId         String                 @db.Uuid
+  planId                 String?                @db.Uuid
+  provider               BillingProvider        @default(MANUAL)
+  providerSubscriptionId String?
+  status                 SaasSubscriptionStatus @default(TRIALING)
+  interval               BillingInterval        @default(MONTHLY)
+  trialEndsAt            DateTime?
+  currentPeriodStart     DateTime               @default(now())
+  currentPeriodEnd       DateTime?
+  cancelAtPeriodEnd      Boolean                @default(false)
+  cancelledAt            DateTime?
+  couponCode             String?
+  taxRegion              String?
+  prorationPreview       Json?
+  metadata               Json?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  deletedAt              DateTime?
+  organisation           Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  plan                   Plan?                  @relation(fields: [planId], references: [id], onDelete: SetNull)
+  invoices               BillingInvoice[]
+
+  @@index([organisationId, status])
+  @@index([planId])
+  @@index([provider, providerSubscriptionId])
+  @@index([currentPeriodEnd])
+  @@index([deletedAt])
+}
+
+model UsageRecord {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  metric         UsageMetric
+  quantity       Decimal      @default(0) @db.Decimal(18, 4)
+  limit          Decimal?     @db.Decimal(18, 4)
+  periodStart    DateTime
+  periodEnd      DateTime
+  source         String?
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, metric])
+  @@index([organisationId, periodStart, periodEnd])
+  @@index([deletedAt])
+}
+
+model CheckoutSession {
+  id             String          @id @default(uuid()) @db.Uuid
+  organisationId String          @db.Uuid
+  planId         String?         @db.Uuid
+  provider       BillingProvider @default(MANUAL)
+  status         CheckoutStatus  @default(DRAFT)
+  interval       BillingInterval @default(MONTHLY)
+  checkoutUrl    String?
+  successUrl     String?
+  cancelUrl      String?
+  couponCode     String?
+  expiresAt      DateTime?
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  plan           Plan?           @relation(fields: [planId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, status])
+  @@index([planId])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}
+
+model CustomerPortalSession {
+  id             String          @id @default(uuid()) @db.Uuid
+  organisationId String          @db.Uuid
+  provider       BillingProvider @default(MANUAL)
+  portalUrl      String?
+  returnUrl      String?
+  expiresAt      DateTime?
+  metadata       Json?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation    @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, provider])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}
+
+model BillingInvoice {
+  id                 String            @id @default(uuid()) @db.Uuid
+  organisationId     String            @db.Uuid
+  saasSubscriptionId String?           @db.Uuid
+  provider           BillingProvider   @default(MANUAL)
+  providerInvoiceId  String?
+  invoiceNumber      String
+  currency           String            @default("USD")
+  subtotal           Decimal           @default(0) @db.Decimal(14, 2)
+  tax                Decimal           @default(0) @db.Decimal(14, 2)
+  total              Decimal           @default(0) @db.Decimal(14, 2)
+  status             String            @default("draft")
+  hostedInvoiceUrl   String?
+  pdfUrl             String?
+  issuedAt           DateTime          @default(now())
+  dueAt              DateTime?
+  paidAt             DateTime?
+  metadata           Json?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+  deletedAt          DateTime?
+  organisation       Organisation      @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  saasSubscription   SaasSubscription? @relation(fields: [saasSubscriptionId], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, invoiceNumber])
+  @@index([organisationId, status])
+  @@index([saasSubscriptionId])
+  @@index([issuedAt])
+  @@index([deletedAt])
+}
+
+model DataImport {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  type           String
+  format         DataFormat
+  status         ImportStatus @default(QUEUED)
+  filename       String?
+  storageKey     String?
+  rowCount       Int?
+  importedCount  Int          @default(0)
+  failedCount    Int          @default(0)
+  mapping        Json?
+  errors         Json?
+  createdBy      String?      @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, type])
+  @@index([organisationId, status])
+  @@index([deletedAt])
+}
+
+model DataExport {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  type           String
+  format         DataFormat
+  status         ExportStatus @default(QUEUED)
+  storageKey     String?
+  downloadUrl    String?
+  expiresAt      DateTime?
+  requestedBy    String?      @db.Uuid
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, type])
+  @@index([organisationId, status])
+  @@index([expiresAt])
+  @@index([deletedAt])
+}
+
+model OnboardingProgress {
+  id              String           @id @default(uuid()) @db.Uuid
+  organisationId  String           @db.Uuid
+  status          OnboardingStatus @default(IN_PROGRESS)
+  currentStep     String           @default("create-organisation")
+  completedSteps  String[]
+  checklist       Json?
+  sampleWorkspace Boolean          @default(false)
+  aiIntroduced    Boolean          @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
+  organisation    Organisation     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId])
+  @@index([status])
+  @@index([deletedAt])
+}
+
+model EmailTemplate {
+  id             String            @id @default(uuid()) @db.Uuid
+  organisationId String?           @db.Uuid
+  type           EmailTemplateType
+  subject        String
+  previewText    String?
+  htmlBody       String
+  textBody       String?
+  variables      String[]
+  active         Boolean           @default(true)
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, type])
+  @@index([active])
+  @@index([deletedAt])
+}
+
+model LegalDocument {
+  id             String            @id @default(uuid()) @db.Uuid
+  organisationId String?           @db.Uuid
+  type           LegalDocumentType
+  version        String
+  title          String
+  content        String
+  effectiveAt    DateTime?
+  publishedAt    DateTime?
+  metadata       Json?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation?     @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, type, version])
+  @@index([type, publishedAt])
+  @@index([deletedAt])
+}
+
+model LaunchChecklistItem {
+  id             String        @id @default(uuid()) @db.Uuid
+  organisationId String?       @db.Uuid
+  area           String
+  title          String
+  status         String        @default("pending")
+  evidence       Json?
+  owner          String?
+  completedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, area])
+  @@index([status])
   @@index([deletedAt])
 }

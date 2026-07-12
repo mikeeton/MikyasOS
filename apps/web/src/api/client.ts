@@ -1995,7 +1995,11 @@ export type AdminRecord = {
   action?: string;
   module?: string;
   service?: string;
+  metric?: string;
+  type?: string;
+  interval?: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 export type EnterpriseDashboard = {
@@ -2022,6 +2026,36 @@ export type PlatformOverview = {
   errorRate: number;
   latencyMs: number;
   health: Record<string, unknown>;
+};
+
+export type BillingPlan = {
+  id?: string;
+  tier: 'STARTER' | 'PROFESSIONAL' | 'BUSINESS' | 'ENTERPRISE';
+  name: string;
+  description?: string;
+  monthlyPrice: number | string;
+  annualPrice: number | string;
+  maxUsers: number;
+  storageGb: number;
+  aiTokensMonthly: number;
+  automationsMonthly: number;
+  projectsLimit: number;
+  documentsLimit: number;
+  apiAccess: boolean;
+  supportLevel: string;
+  enterpriseFeatures: boolean;
+  features: string[];
+};
+
+export type BillingOverview = {
+  subscription?: AdminRecord | null;
+  plan: BillingPlan;
+  usage: AdminRecord[];
+  invoices: AdminRecord[];
+  onboarding?: AdminRecord | null;
+  imports: number;
+  exports: number;
+  support: { level: string; portalPrepared: boolean; statusPagePrepared: boolean };
 };
 
 export const enterpriseApi = {
@@ -2071,6 +2105,84 @@ export const enterpriseApi = {
     body: { name: string; permissions: string[] },
   ) =>
     apiRequest<AdminRecord>('/enterprise/roles', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+};
+
+export const billingApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<Record<string, unknown>>('/billing/capabilities', { token, organisationId }),
+  overview: (token: string, organisationId: string) =>
+    apiRequest<BillingOverview>('/billing/overview', { token, organisationId }),
+  plans: (token: string, organisationId: string) =>
+    apiRequest<BillingPlan[]>('/billing/plans', { token, organisationId }),
+  subscriptions: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/subscriptions${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  usage: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/usage${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  checkout: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/checkout${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  portal: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/portal${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  imports: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/imports${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  exports: (token: string, organisationId: string, query: AdminQuery = {}) =>
+    apiRequest<PaginatedResult<AdminRecord>>(`/billing/exports${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  emailTemplates: (token: string, organisationId: string) =>
+    apiRequest<AdminRecord[]>('/billing/emails/templates', { token, organisationId }),
+  legal: (token: string, organisationId: string) =>
+    apiRequest<AdminRecord[]>('/billing/legal', { token, organisationId }),
+  launchChecklist: (token: string, organisationId: string) =>
+    apiRequest<AdminRecord[]>('/billing/launch-checklist', { token, organisationId }),
+  createCheckout: (
+    token: string,
+    organisationId: string,
+    body: { planId?: string; interval?: 'MONTHLY' | 'ANNUAL'; couponCode?: string },
+  ) =>
+    apiRequest<AdminRecord>('/billing/checkout', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  recordUsage: (
+    token: string,
+    organisationId: string,
+    body: { metric: string; quantity: number; limit?: number; source?: string },
+  ) =>
+    apiRequest<AdminRecord>('/billing/usage', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  updateOnboarding: (
+    token: string,
+    organisationId: string,
+    body: { status?: string; currentStep?: string; checklist?: Record<string, unknown> },
+  ) =>
+    apiRequest<AdminRecord>('/billing/onboarding', {
       method: 'POST',
       token,
       organisationId,

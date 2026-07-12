@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AuthModule } from './auth/auth.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { AutomationModule } from './automation/automation.module';
+import { BillingModule } from './billing/billing.module';
 import { AppConfigModule } from './config/app-config.module';
 import { AppConfigService } from './config/app-config.service';
 import { CommunicationModule } from './communication/communication.module';
@@ -63,6 +64,7 @@ import { UsersModule } from './users/users.module';
     AiModule,
     AiOsModule,
     AuthModule,
+    BillingModule,
     UsersModule,
     OrganisationsModule,
     RolesModule,

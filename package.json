@@ -1,6 +1,6 @@
 {
   "name": "mikyasos",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "AI-powered business operating system monorepo.",
   "packageManager": "npm@10.9.8",

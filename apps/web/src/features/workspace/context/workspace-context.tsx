@@ -91,6 +91,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         integrations: true,
         admin: true,
         platform: true,
+        billing: true,
         automation: true,
         ai: true,
       },
