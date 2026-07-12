@@ -5,11 +5,20 @@ import type { ThemePreference } from '@/stores/theme-store';
 
 export type WorkspaceNotification = {
   id: string;
-  group: 'System' | 'Workspace' | 'Security';
+  group:
+    | 'System'
+    | 'Workspace'
+    | 'Security'
+    | 'Calendar'
+    | 'Projects'
+    | 'Finance'
+    | 'Automation'
+    | 'Communication';
   title: string;
   description: string;
   timestamp: string;
   unread: boolean;
+  route?: string;
 };
 
 export type WorkspaceContextValue = {

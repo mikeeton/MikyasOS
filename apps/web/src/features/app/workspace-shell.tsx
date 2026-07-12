@@ -3,6 +3,7 @@ import { Navigate, Outlet, useLocation } from 'react-router';
 
 import { WorkspaceSidebar } from '@/features/workspace/components/workspace-sidebar';
 import { WorkspaceTopbar } from '@/features/workspace/components/workspace-topbar';
+import { MobileBottomNav } from '@/features/workspace/components/mobile-bottom-nav';
 import { WorkspaceProvider } from '@/features/workspace/context/workspace-context';
 import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
 
@@ -52,7 +53,7 @@ function WorkspaceFrame() {
         <motion.main
           id="workspace-content"
           key={location.pathname}
-          className="premium-page px-4 py-6 sm:px-6 lg:px-8"
+          className="premium-page px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-6"
           initial={reduceMotion ? false : { opacity: 0, y: 8 }}
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
@@ -60,6 +61,7 @@ function WorkspaceFrame() {
         >
           <Outlet />
         </motion.main>
+        <MobileBottomNav />
       </div>
     </div>
   );

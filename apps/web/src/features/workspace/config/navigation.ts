@@ -37,6 +37,12 @@ export const workspaceNavigation: NavigationItem[] = [
     keywords: ['home', 'overview', 'workspace'],
   },
   {
+    title: 'Today',
+    route: '/app/today',
+    icon: CalendarDays,
+    keywords: ['today', 'focus', 'agenda', 'next actions'],
+  },
+  {
     title: 'CRM',
     route: '/app/crm',
     icon: UsersRound,

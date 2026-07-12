@@ -9,6 +9,7 @@ import { workspaceNavigation } from '../config/navigation';
 import { CommandPalette } from './command-palette';
 import { NotificationCentre } from './notification-centre';
 import { OrganisationSwitcher } from './organisation-switcher';
+import { QuickCreateMenu } from './quick-create-menu';
 import { SearchModal } from './search-modal';
 import { ThemeToggle } from './theme-toggle';
 import { UserMenu } from './user-menu';
@@ -78,6 +79,7 @@ export function WorkspaceTopbar() {
             <div className="hidden xl:block">
               <OrganisationSwitcher />
             </div>
+            <QuickCreateMenu />
             <ThemeToggle />
             <NotificationCentre />
             <UserMenu />

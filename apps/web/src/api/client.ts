@@ -2329,6 +2329,13 @@ export const communicationApi = {
       organisationId,
       body: JSON.stringify(body),
     }),
+  updateMeeting: (token: string, organisationId: string, id: string, body: Partial<Meeting>) =>
+    apiRequest<Meeting>(`/meetings/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
   meetingNotes: (token: string, organisationId: string, query: CommunicationQuery = {}) =>
     apiRequest<MeetingNote[]>(`/meeting-notes${toQueryString(query)}`, {
       token,

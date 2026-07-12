@@ -15,7 +15,7 @@ import {
   UsersRound,
 } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState, type ComponentType } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 
 import {
   aiOsApi,
@@ -39,6 +39,7 @@ type SearchResult = {
   eyebrow: string;
   href: string;
   icon: ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+  score?: number;
 };
 
 const quickSearches = [
@@ -58,7 +59,16 @@ export function SearchModal({
 }) {
   const token = useAuthStore((state) => state.accessToken);
   const { currentOrganisation } = useWorkspace();
+  const navigate = useNavigate();
   const [query, setQuery] = useState('');
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [recentSearches, setRecentSearches] = useState<string[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem('mikyasos:recent-searches') ?? '[]') as string[];
+    } catch {
+      return [];
+    }
+  });
   const trackEvent = useTrackProductEvent();
   const lastTrackedQueryRef = useRef('');
   const trimmedQuery = query.trim();
@@ -103,6 +113,7 @@ export function SearchModal({
   }, [searchQuery.data]);
 
   const resultCount = searchQuery.data?.length ?? 0;
+  const flatResults = searchQuery.data ?? [];
 
   useEffect(() => {
     if (
@@ -114,6 +125,11 @@ export function SearchModal({
     }
 
     lastTrackedQueryRef.current = trimmedQuery;
+    setRecentSearches((items) => {
+      const next = [trimmedQuery, ...items.filter((item) => item !== trimmedQuery)].slice(0, 5);
+      localStorage.setItem('mikyasos:recent-searches', JSON.stringify(next));
+      return next;
+    });
     trackEvent.mutate({
       name: 'global_search_performed',
       source: 'global_search_modal',
@@ -124,6 +140,26 @@ export function SearchModal({
       },
     });
   }, [groupedResults, resultCount, searchQuery.isSuccess, trackEvent, trimmedQuery]);
+
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [trimmedQuery]);
+
+  const openResult = (result: SearchResult, index: number) => {
+    trackEvent.mutate({
+      name: 'global_search_result_opened',
+      source: 'global_search_modal',
+      entityType: result.eyebrow.toLowerCase(),
+      entityId: result.id,
+      metadata: {
+        queryLength: trimmedQuery.length,
+        rank: index + 1,
+        href: result.href,
+      },
+    });
+    onOpenChange(false);
+    void navigate(result.href);
+  };
 
   return (
     <AnimatePresence>
@@ -148,6 +184,18 @@ export function SearchModal({
             onKeyDown={(event) => {
               if (event.key === 'Escape') {
                 onOpenChange(false);
+              }
+              if (event.key === 'ArrowDown' && flatResults.length > 0) {
+                event.preventDefault();
+                setSelectedIndex((index) => Math.min(index + 1, flatResults.length - 1));
+              }
+              if (event.key === 'ArrowUp' && flatResults.length > 0) {
+                event.preventDefault();
+                setSelectedIndex((index) => Math.max(index - 1, 0));
+              }
+              if (event.key === 'Enter' && flatResults[selectedIndex]) {
+                event.preventDefault();
+                openResult(flatResults[selectedIndex], selectedIndex);
               }
             }}
           >
@@ -203,6 +251,25 @@ export function SearchModal({
                       );
                     })}
                   </div>
+                  {recentSearches.length > 0 && (
+                    <div className="mt-5">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Recent searches
+                      </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {recentSearches.map((item) => (
+                          <button
+                            key={item}
+                            type="button"
+                            className="rounded-full border px-3 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                            onClick={() => setQuery(item)}
+                          >
+                            {item}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -274,13 +341,18 @@ export function SearchModal({
                       <div className="grid gap-2">
                         {results.map((result) => {
                           const Icon = result.icon;
+                          const resultIndex = flatResults.findIndex(
+                            (item) => item.id === result.id,
+                          );
+                          const selected = resultIndex === selectedIndex;
                           return (
-                            <Link
+                            <button
                               key={result.id}
-                              to={result.href}
-                              onClick={() => onOpenChange(false)}
+                              type="button"
+                              onClick={() => openResult(result, resultIndex)}
                               className={cn(
-                                'premium-interactive premium-muted-panel flex items-start gap-3 px-3 py-3',
+                                'premium-interactive premium-muted-panel flex items-start gap-3 px-3 py-3 text-left',
+                                selected && 'ring-2 ring-ring',
                               )}
                             >
                               <span className="grid size-9 shrink-0 place-items-center rounded-md border border-border bg-background/70">
@@ -298,7 +370,7 @@ export function SearchModal({
                                 className="mt-1 size-4 shrink-0 text-muted-foreground"
                                 aria-hidden="true"
                               />
-                            </Link>
+                            </button>
                           );
                         })}
                       </div>
@@ -470,7 +542,25 @@ function normalizeResults(input: {
     });
   });
 
-  return results.slice(0, 30);
+  return results
+    .map((result) => ({ ...result, score: scoreResult(result, input.query) }))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0) || a.title.localeCompare(b.title))
+    .slice(0, 30);
+}
+
+function scoreResult(result: SearchResult, query: string) {
+  const q = query.toLowerCase();
+  const title = result.title.toLowerCase();
+  const description = result.description.toLowerCase();
+  let score = 10;
+
+  if (title === q) score += 100;
+  if (title.startsWith(q)) score += 60;
+  if (title.includes(q)) score += 35;
+  if (description.includes(q)) score += 15;
+  if (['CRM', 'Projects', 'Documents', 'Finance'].includes(result.eyebrow)) score += 5;
+
+  return score;
 }
 
 function formatMoney(value: unknown) {

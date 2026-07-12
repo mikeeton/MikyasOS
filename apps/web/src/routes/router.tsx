@@ -29,6 +29,12 @@ const CalendarPage = lazy(() =>
   })),
 );
 
+const TodayCommandCentrePage = lazy(() =>
+  import('@/features/today/today-command-centre-page').then((module) => ({
+    default: module.TodayCommandCentrePage,
+  })),
+);
+
 const CrmDashboardPage = lazy(() =>
   import('@/features/crm/pages/crm-dashboard-page').then((module) => ({
     default: module.CrmDashboardPage,
@@ -678,6 +684,10 @@ export const router = createBrowserRouter([
           {
             index: true,
             element: withSuspense(<AppHomePage />),
+          },
+          {
+            path: 'today',
+            element: withSuspense(<TodayCommandCentrePage />),
           },
           {
             path: 'settings',

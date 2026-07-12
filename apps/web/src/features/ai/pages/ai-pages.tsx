@@ -122,6 +122,12 @@ export function AiWorkspacePage() {
   const retrieval = useAiRetrievalStatus();
   const actions = useAiActions();
   const orchestrate = useAiOrchestrate();
+  const operationalPrompts = [
+    'What needs my attention today?',
+    'Which projects are at risk?',
+    'Who should I follow up with?',
+    'What invoices are overdue?',
+  ];
 
   const runPreview = () => orchestrate.mutate({ message, currentPage: '/app/ai' });
 
@@ -195,6 +201,18 @@ export function AiWorkspacePage() {
               <Button variant="outline" disabled>
                 Stream response
               </Button>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {operationalPrompts.map((prompt) => (
+                <button
+                  key={prompt}
+                  type="button"
+                  className="rounded-full border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                  onClick={() => setMessage(prompt)}
+                >
+                  {prompt}
+                </button>
+              ))}
             </div>
           </div>
           {orchestrate.data ? (
@@ -275,8 +293,9 @@ export function AiWorkspacePage() {
           <section className="premium-card p-5">
             <h2 className="font-semibold">Business health</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Finance, meetings, calendar, notifications, and automation are prepared as future
-              sources. The AI will report unavailable data instead of guessing.
+              AI answers are grounded through organisation context, citations, permission checks,
+              and confirmation-required actions. Today, calendar, finance, and project signals are
+              now available as operational prompts.
             </p>
           </section>
         </div>

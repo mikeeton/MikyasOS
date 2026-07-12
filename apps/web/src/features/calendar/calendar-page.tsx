@@ -40,6 +40,7 @@ type CalendarEventType =
 
 type CalendarEvent = {
   id: string;
+  entityId: string;
   type: CalendarEventType;
   title: string;
   startsAt: string;
@@ -172,6 +173,7 @@ function toCalendarEvents({
   return [
     ...meetings.map((meeting) => ({
       id: `meeting-${meeting.id}`,
+      entityId: meeting.id,
       type: 'meeting' as const,
       title: meeting.title,
       startsAt: meeting.startsAt,
@@ -186,6 +188,7 @@ function toCalendarEvents({
       .filter((task) => task.dueDate)
       .map((task) => ({
         id: `task-${task.id}`,
+        entityId: task.id,
         type: 'task' as const,
         title: task.title,
         startsAt: task.dueDate!,
@@ -198,6 +201,7 @@ function toCalendarEvents({
       .filter((project) => project.dueDate || project.startDate)
       .map((project) => ({
         id: `project-${project.id}`,
+        entityId: project.id,
         type: 'project' as const,
         title: project.name,
         startsAt: project.dueDate ?? project.startDate!,
@@ -210,6 +214,7 @@ function toCalendarEvents({
       .filter((invoice) => invoice.dueDate)
       .map((invoice) => ({
         id: `invoice-${invoice.id}`,
+        entityId: invoice.id,
         type: 'invoice' as const,
         title: invoice.invoiceNumber,
         startsAt: invoice.dueDate!,
@@ -223,6 +228,7 @@ function toCalendarEvents({
       .filter((quote) => quote.expiryDate)
       .map((quote) => ({
         id: `quote-${quote.id}`,
+        entityId: quote.id,
         type: 'quote' as const,
         title: quote.quoteNumber,
         startsAt: quote.expiryDate!,
@@ -234,6 +240,7 @@ function toCalendarEvents({
       })),
     ...expenses.map((expense) => ({
       id: `expense-${expense.id}`,
+      entityId: expense.id,
       type: 'expense' as const,
       title: expense.title,
       startsAt: expense.expenseDate,
@@ -245,6 +252,7 @@ function toCalendarEvents({
     })),
     ...cashFlow.map((entry) => ({
       id: `cashflow-${entry.id}`,
+      entityId: entry.id,
       type: 'cashflow' as const,
       title:
         entry.description || `${entry.direction === 'INFLOW' ? 'Incoming' : 'Outgoing'} cash flow`,
@@ -263,6 +271,11 @@ function EventPill({ event, compact = false }: { event: CalendarEvent; compact?:
   const Icon = style.icon;
   const content = (
     <span
+      draggable={event.type === 'meeting' || event.type === 'task'}
+      onDragStart={(dragEvent) => {
+        dragEvent.dataTransfer.setData('text/calendar-event-id', event.id);
+        dragEvent.dataTransfer.effectAllowed = 'move';
+      }}
       className={cn(
         'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium',
         style.className,
@@ -330,7 +343,8 @@ export function CalendarPage() {
   const trackEvent = useTrackProductEvent();
   const [month, setMonth] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => dateKey(new Date()));
-  const [view, setView] = useState<'month' | 'agenda'>('month');
+  const [view, setView] = useState<'day' | 'week' | 'month' | 'agenda'>('month');
+  const [createType, setCreateType] = useState<'meeting' | 'task' | 'invoice-reminder'>('meeting');
   const [meetingTitle, setMeetingTitle] = useState('');
 
   const meetings = useQuery({
@@ -369,14 +383,51 @@ export function CalendarPage() {
     enabled,
   });
 
-  const createMeeting = useMutation({
+  const updateMeeting = useMutation({
+    mutationFn: (body: { id: string; startsAt: string; endsAt: string }) =>
+      communicationApi.updateMeeting(token!, organisationId!, body.id, {
+        startsAt: body.startsAt,
+        endsAt: body.endsAt,
+      }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      void queryClient.invalidateQueries({ queryKey: ['today'] });
+    },
+  });
+
+  const updateTask = useMutation({
+    mutationFn: (body: { id: string; dueDate: string }) =>
+      projectsApi.updateTask(token!, organisationId!, body.id, { dueDate: body.dueDate }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      void queryClient.invalidateQueries({ queryKey: ['today'] });
+    },
+  });
+
+  const createRecord = useMutation<unknown, Error, void>({
     mutationFn: () => {
       const date = new Date(selectedDate);
       date.setHours(10, 0, 0, 0);
       const end = new Date(date);
       end.setHours(10, 30, 0, 0);
+      const title = meetingTitle.trim();
+
+      if (createType === 'task') {
+        const firstProject = items(projects.data)[0];
+        if (!firstProject) {
+          throw new Error('Create a project before adding tasks from calendar.');
+        }
+        return projectsApi.createTask(token!, organisationId!, {
+          projectId: firstProject.id,
+          title,
+          dueDate: date.toISOString(),
+          status: 'TODO',
+          priority: 'MEDIUM',
+        });
+      }
+
       return communicationApi.createMeeting(token!, organisationId!, {
-        title: meetingTitle.trim(),
+        title: createType === 'invoice-reminder' ? `Invoice reminder: ${title}` : title,
         startsAt: date.toISOString(),
         endsAt: end.toISOString(),
         status: 'SCHEDULED',
@@ -385,10 +436,11 @@ export function CalendarPage() {
     onSuccess: () => {
       setMeetingTitle('');
       void queryClient.invalidateQueries({ queryKey: ['calendar'] });
+      void queryClient.invalidateQueries({ queryKey: ['today'] });
       trackEvent.mutate({
-        name: 'calendar_meeting_created',
+        name: 'calendar_record_created',
         source: 'calendar',
-        entityType: 'meeting',
+        entityType: createType,
       });
     },
   });
@@ -453,6 +505,46 @@ export function CalendarPage() {
   const monthEventCount = calendarEvents.filter(
     (event) => new Date(event.startsAt).getMonth() === month.getMonth(),
   ).length;
+  const weekStart = new Date(selectedDate);
+  weekStart.setDate(weekStart.getDate() - ((weekStart.getDay() + 6) % 7));
+  const weekDates = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(weekStart);
+    date.setDate(weekStart.getDate() + index);
+    return dateKey(date);
+  });
+  const focusedEvents =
+    view === 'day'
+      ? selectedEvents
+      : view === 'week'
+        ? calendarEvents.filter((event) => weekDates.includes(dateKey(event.startsAt)))
+        : calendarEvents;
+
+  const rescheduleEvent = (eventId: string, targetDate: string) => {
+    const calendarEvent = calendarEvents.find((event) => event.id === eventId);
+    if (!calendarEvent || !['meeting', 'task'].includes(calendarEvent.type)) {
+      return;
+    }
+
+    const nextStart = new Date(targetDate);
+    const originalStart = new Date(calendarEvent.startsAt);
+    nextStart.setHours(originalStart.getHours() || 10, originalStart.getMinutes(), 0, 0);
+
+    if (calendarEvent.type === 'task') {
+      updateTask.mutate({ id: calendarEvent.entityId, dueDate: nextStart.toISOString() });
+      return;
+    }
+
+    const originalEnd = calendarEvent.endsAt ? new Date(calendarEvent.endsAt) : null;
+    const duration = originalEnd
+      ? Math.max(originalEnd.getTime() - originalStart.getTime(), 30 * 60 * 1000)
+      : 30 * 60 * 1000;
+    const nextEnd = new Date(nextStart.getTime() + duration);
+    updateMeeting.mutate({
+      id: calendarEvent.entityId,
+      startsAt: nextStart.toISOString(),
+      endsAt: nextEnd.toISOString(),
+    });
+  };
 
   return (
     <div className="grid gap-6">
@@ -466,6 +558,20 @@ export function CalendarPage() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button
+            variant={view === 'day' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('day')}
+          >
+            Day
+          </Button>
+          <Button
+            variant={view === 'week' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setView('week')}
+          >
+            Week
+          </Button>
           <Button
             variant={view === 'month' ? 'default' : 'outline'}
             size="sm"
@@ -573,6 +679,11 @@ export function CalendarPage() {
                     key={key}
                     type="button"
                     onClick={() => setSelectedDate(key)}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      rescheduleEvent(event.dataTransfer.getData('text/calendar-event-id'), key);
+                    }}
                     className={cn(
                       'min-h-32 border-b border-r p-2 text-left transition hover:bg-accent/60 focus:outline-none focus:ring-2 focus:ring-ring',
                       !isCurrentMonth && 'bg-secondary/30 text-muted-foreground',
@@ -626,23 +737,45 @@ export function CalendarPage() {
             <section className="premium-card p-4">
               <div className="flex items-center gap-2">
                 <Plus className="size-4" />
-                <h2 className="font-semibold">Create meeting</h2>
+                <h2 className="font-semibold">Create from selected date</h2>
               </div>
               <div className="mt-4 grid gap-3">
+                <select
+                  value={createType}
+                  onChange={(event) =>
+                    setCreateType(event.target.value as 'meeting' | 'task' | 'invoice-reminder')
+                  }
+                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="meeting">Meeting</option>
+                  <option value="task">Task on first project</option>
+                  <option value="invoice-reminder">Invoice follow-up reminder</option>
+                </select>
                 <input
                   value={meetingTitle}
                   onChange={(event) => setMeetingTitle(event.target.value)}
-                  placeholder="Meeting title"
+                  placeholder={
+                    createType === 'meeting'
+                      ? 'Meeting title'
+                      : createType === 'task'
+                        ? 'Task title'
+                        : 'Invoice/customer to follow up'
+                  }
                   className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
                 />
                 <Button
-                  disabled={!meetingTitle.trim() || createMeeting.isPending}
-                  onClick={() => createMeeting.mutate()}
+                  disabled={!meetingTitle.trim() || createRecord.isPending}
+                  onClick={() => createRecord.mutate()}
                 >
-                  {createMeeting.isPending
+                  {createRecord.isPending
                     ? 'Creating...'
-                    : `Add at 10:00 on ${formatDate(selectedDate)}`}
+                    : `Create ${createType.replace('-', ' ')} on ${formatDate(selectedDate)}`}
                 </Button>
+                {createType === 'task' && items(projects.data).length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Create a project first before adding calendar tasks.
+                  </p>
+                )}
               </div>
             </section>
           </aside>
@@ -650,12 +783,12 @@ export function CalendarPage() {
       ) : (
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
           <div className="grid gap-3">
-            {calendarEvents.length > 0 ? (
-              calendarEvents.map((event) => <EventRow key={event.id} event={event} />)
+            {focusedEvents.length > 0 ? (
+              focusedEvents.map((event) => <EventRow key={event.id} event={event} />)
             ) : (
               <section className="premium-card p-8 text-center">
                 <Search className="mx-auto size-8 text-muted-foreground" />
-                <h2 className="mt-4 text-lg font-semibold">No dated work yet</h2>
+                <h2 className="mt-4 text-lg font-semibold">No dated work in this view</h2>
                 <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">
                   Add meeting times, task due dates, project due dates, invoice due dates, and
                   cash-flow dates. They will appear here automatically.
