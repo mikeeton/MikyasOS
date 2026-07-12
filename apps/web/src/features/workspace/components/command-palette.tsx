@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bot, Clock, Search, Sparkles, type LucideIcon } from 'lucide-react';
+import { Bot, Clock, Search, Sparkles, Zap, type LucideIcon } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router';
@@ -95,38 +95,51 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               </kbd>
             </div>
             <div className="max-h-[28rem] overflow-y-auto p-2">
+              <div className="mb-2 rounded-md border border-border/70 bg-background/50 px-3 py-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Zap className="size-3.5" aria-hidden="true" />
+                  Type a module, action, or route. Keyboard-first workflows stay under one command.
+                </div>
+              </div>
               <motion.div variants={cascadeContainer} initial="initial" animate="animate">
                 <CommandSection title={query ? 'Results' : 'Quick actions'} icon={Sparkles}>
-                  {results.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <motion.button
-                        key={`${item.title}-${item.route}`}
-                        type="button"
-                        className={cn(
-                          'premium-focus flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm transition hover:bg-accent',
-                          item.disabled && 'cursor-not-allowed opacity-55',
-                        )}
-                        variants={cascadeItem}
-                        whileHover={{ x: 3 }}
-                        whileTap={{ scale: 0.985 }}
-                        onClick={() => runCommand(item.route, item.disabled)}
-                      >
-                        <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium">{item.title}</span>
-                          <span className="block truncate text-xs text-muted-foreground">
-                            {item.disabled ? 'Coming soon' : item.route}
+                  {results.length > 0 ? (
+                    results.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <motion.button
+                          key={`${item.title}-${item.route}`}
+                          type="button"
+                          className={cn(
+                            'premium-interactive flex w-full items-center gap-3 rounded-md px-3 py-3 text-left text-sm hover:bg-accent',
+                            item.disabled && 'cursor-not-allowed opacity-55',
+                          )}
+                          variants={cascadeItem}
+                          whileHover={{ x: 3 }}
+                          whileTap={{ scale: 0.985 }}
+                          onClick={() => runCommand(item.route, item.disabled)}
+                        >
+                          <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-medium">{item.title}</span>
+                            <span className="block truncate text-xs text-muted-foreground">
+                              {item.disabled ? 'Coming soon' : item.route}
+                            </span>
                           </span>
-                        </span>
-                        {item.badge && (
-                          <span className="rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
-                            {item.badge}
-                          </span>
-                        )}
-                      </motion.button>
-                    );
-                  })}
+                          {item.badge && (
+                            <span className="status-pill status-pill-info px-2 py-0.5 text-[10px]">
+                              {item.badge}
+                            </span>
+                          )}
+                        </motion.button>
+                      );
+                    })
+                  ) : (
+                    <div className="rounded-md border border-dashed border-border px-3 py-5 text-sm text-muted-foreground">
+                      No command matches "{query}". Try a module name like CRM, Projects, AI, or
+                      Billing.
+                    </div>
+                  )}
                 </CommandSection>
               </motion.div>
               {!query && (
@@ -138,7 +151,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                         <button
                           key={`recent-${item.route}`}
                           type="button"
-                          className="flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-muted-foreground transition hover:bg-accent hover:text-foreground"
+                          className="premium-interactive flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm text-muted-foreground hover:bg-accent hover:text-foreground"
                           onClick={() => runCommand(item.route, item.disabled)}
                         >
                           <Icon className="size-4" aria-hidden="true" />

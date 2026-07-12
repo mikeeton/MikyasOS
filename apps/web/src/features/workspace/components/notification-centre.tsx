@@ -45,17 +45,41 @@ export function NotificationCentre() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={premiumSpring}
-            className="premium-glass absolute right-0 z-40 mt-3 w-[min(24rem,calc(100vw-2rem))] rounded-md"
+            className="premium-glass absolute right-0 z-40 mt-3 w-[min(26rem,calc(100vw-2rem))] overflow-hidden rounded-md"
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <div>
                 <p className="text-sm font-semibold">Notifications</p>
-                <p className="text-xs text-muted-foreground">{unreadCount} unread updates</p>
+                <p className="text-xs text-muted-foreground">
+                  {unreadCount > 0 ? `${unreadCount} unread updates` : 'All caught up'}
+                </p>
               </div>
               <Button variant="ghost" size="sm" onClick={markAllNotificationsRead}>
                 <CheckCheck className="mr-2 size-4" aria-hidden="true" />
                 Mark read
               </Button>
+            </div>
+            <div className="border-b border-border px-4 py-3">
+              <div className="grid grid-cols-3 gap-2 text-center">
+                <div className="premium-muted-panel px-2 py-2">
+                  <p className="text-xs font-semibold">{notifications.length}</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Total</p>
+                </div>
+                <div className="premium-muted-panel px-2 py-2">
+                  <p className="text-xs font-semibold">{unreadCount}</p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Unread
+                  </p>
+                </div>
+                <div className="premium-muted-panel px-2 py-2">
+                  <p className="text-xs font-semibold">
+                    {Object.keys(groupedNotifications).length}
+                  </p>
+                  <p className="text-[10px] uppercase tracking-wide text-muted-foreground">
+                    Groups
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="max-h-[26rem] overflow-y-auto p-2">
               {notifications.length === 0 ? (
@@ -83,7 +107,7 @@ export function NotificationCentre() {
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           className={cn(
-                            'rounded-md px-3 py-3 transition hover:bg-accent',
+                            'premium-interactive rounded-md px-3 py-3 hover:bg-accent',
                             notification.unread && 'bg-accent/60',
                           )}
                         >
@@ -103,6 +127,11 @@ export function NotificationCentre() {
                               <p className="mt-2 text-[11px] uppercase tracking-wide text-muted-foreground">
                                 {notification.timestamp}
                               </p>
+                              {notification.unread && (
+                                <span className="status-pill status-pill-info mt-3 px-2 py-0.5 text-[10px]">
+                                  Needs attention
+                                </span>
+                              )}
                             </div>
                           </div>
                         </motion.article>

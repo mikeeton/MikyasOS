@@ -531,8 +531,20 @@ function withSuspense(children: ReactNode) {
   return (
     <Suspense
       fallback={
-        <div className="grid min-h-[40vh] place-items-center text-sm text-muted-foreground">
-          Loading workspace...
+        <div className="grid min-h-[40vh] place-items-center px-4 text-sm text-muted-foreground">
+          <div className="premium-section w-full max-w-lg p-5">
+            <div className="flex items-center gap-3">
+              <div className="premium-shimmer size-10 rounded-md" />
+              <div className="min-w-0 flex-1">
+                <div className="premium-shimmer h-3 w-32 rounded-full" />
+                <div className="premium-shimmer mt-2 h-2 w-52 rounded-full" />
+              </div>
+            </div>
+            <div className="mt-5 grid gap-2">
+              <div className="premium-shimmer h-16 rounded-md" />
+              <div className="premium-shimmer h-16 rounded-md" />
+            </div>
+          </div>
         </div>
       }
     >

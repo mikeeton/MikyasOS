@@ -22,6 +22,14 @@
     --input: 240 5.9% 90%;
     --ring: 240 10% 3.9%;
     --radius: 0.5rem;
+    --success: 142 72% 29%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 10% 3.9%;
+    --info: 217 91% 60%;
+    --info-foreground: 0 0% 98%;
+    --surface-raised: 0 0% 100%;
+    --surface-subtle: 240 4.8% 97.6%;
   }
 
   .dark {
@@ -42,6 +50,14 @@
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 240 4.9% 83.9%;
+    --success: 142 69% 45%;
+    --success-foreground: 240 10% 3.9%;
+    --warning: 38 92% 55%;
+    --warning-foreground: 240 10% 3.9%;
+    --info: 217 91% 68%;
+    --info-foreground: 240 10% 3.9%;
+    --surface-raised: 240 5% 8%;
+    --surface-subtle: 240 4% 11%;
   }
 
   * {
@@ -50,13 +66,39 @@
 
   body {
     @apply bg-background text-foreground antialiased;
+    min-width: 320px;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
   }
+
+  ::selection {
+    color: hsl(var(--primary-foreground));
+    background: hsl(var(--primary) / 0.86);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body,
+  button,
+  input,
+  textarea,
+  select {
+    text-rendering: geometricPrecision;
+  }
 }
 
 @layer components {
+  .skip-link {
+    @apply premium-focus fixed left-3 top-3 z-[100] -translate-y-16 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground shadow-lg transition-transform;
+  }
+
+  .skip-link:focus {
+    transform: translateY(0);
+  }
+
   .premium-app-bg {
     position: relative;
     overflow-x: clip;
@@ -87,6 +129,14 @@
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.05) inset,
       0 18px 60px hsl(240 10% 3.9% / 0.08);
+  }
+
+  .premium-shell-grid {
+    background-image:
+      linear-gradient(hsl(var(--border) / 0.34) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(var(--border) / 0.28) 1px, transparent 1px);
+    background-size: 44px 44px;
+    mask-image: linear-gradient(180deg, black 0%, transparent 42rem);
   }
 
   .premium-card {
@@ -130,6 +180,49 @@
 
   .premium-focus {
     @apply outline-none transition focus-visible:ring-2 focus-visible:ring-ring/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background;
+  }
+
+  .premium-interactive {
+    @apply premium-focus transition-[border-color,background,box-shadow,color,transform] duration-200 motion-safe:hover:-translate-y-0.5;
+  }
+
+  .premium-page {
+    @apply mx-auto w-full max-w-[1720px];
+  }
+
+  .premium-section {
+    @apply rounded-md border border-border/80 shadow-sm backdrop-blur-xl;
+    background: hsl(var(--background) / 0.82);
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.04) inset,
+      0 18px 60px hsl(240 10% 3.9% / 0.06);
+  }
+
+  .premium-muted-panel {
+    @apply rounded-md border border-border/70;
+    background: hsl(var(--muted) / 0.38);
+  }
+
+  .status-pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium;
+  }
+
+  .status-pill-success {
+    color: hsl(var(--success));
+    border-color: hsl(var(--success) / 0.22);
+    background: hsl(var(--success) / 0.08);
+  }
+
+  .status-pill-warning {
+    color: hsl(var(--warning));
+    border-color: hsl(var(--warning) / 0.24);
+    background: hsl(var(--warning) / 0.1);
+  }
+
+  .status-pill-info {
+    color: hsl(var(--info));
+    border-color: hsl(var(--info) / 0.24);
+    background: hsl(var(--info) / 0.09);
   }
 
   .ai-breathing {
@@ -400,6 +493,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
   *,
   *::before,
   *::after {
