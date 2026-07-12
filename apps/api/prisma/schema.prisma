@@ -201,6 +201,267 @@ enum DocumentLinkEntityType {
   AUTOMATION
 }
 
+enum ConversationType {
+  DIRECT
+  GROUP
+  CHANNEL
+  ANNOUNCEMENT
+}
+
+enum ConversationVisibility {
+  PUBLIC
+  PRIVATE
+  DEPARTMENT
+  PROJECT
+  COMPANY_WIDE
+}
+
+enum ConversationMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  GUEST
+}
+
+enum MessageStatus {
+  ACTIVE
+  EDITED
+  DELETED
+}
+
+enum MessageActivityAction {
+  SENT
+  EDITED
+  DELETED
+  REACTION_ADDED
+  REACTION_REMOVED
+  READ
+  ATTACHMENT_ADDED
+  THREAD_STARTED
+}
+
+enum AnnouncementPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MeetingStatus {
+  DRAFT
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum MeetingParticipantStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  TENTATIVE
+}
+
+enum PresenceStatus {
+  ONLINE
+  AWAY
+  BUSY
+  OFFLINE
+  IN_MEETING
+  WORKING_ON_PROJECT
+}
+
+enum WorkflowStatus {
+  DRAFT
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WorkflowTriggerType {
+  CUSTOMER_CREATED
+  LEAD_WON
+  PROJECT_CREATED
+  TASK_COMPLETED
+  DOCUMENT_UPLOADED
+  MEETING_ENDED
+  INVOICE_PAID
+  CALENDAR_EVENT
+  WEBHOOK_RECEIVED
+  MANUAL
+  SCHEDULED
+}
+
+enum WorkflowConditionOperator {
+  EQUALS
+  CONTAINS
+  GREATER_THAN
+  LESS_THAN
+  DATE
+  USER
+  ROLE
+  DEPARTMENT
+  PROJECT_STATUS
+  CRM_STATUS
+  DOCUMENT_TAG
+  CUSTOM_EXPRESSION
+}
+
+enum WorkflowActionType {
+  CREATE_TASK
+  ASSIGN_TASK
+  CREATE_PROJECT
+  CREATE_COMPANY
+  CREATE_CONTACT
+  SEND_NOTIFICATION
+  SEND_EMAIL
+  GENERATE_AI_SUMMARY
+  CREATE_MEETING
+  CREATE_CALENDAR_EVENT
+  MOVE_CRM_STAGE
+  UPDATE_RECORD
+  CREATE_DOCUMENT
+  RUN_WEBHOOK
+  WAIT
+  APPROVAL
+}
+
+enum WorkflowExecutionStatus {
+  QUEUED
+  RUNNING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+  WAITING_APPROVAL
+}
+
+enum WorkflowScheduleType {
+  ONCE
+  HOURLY
+  DAILY
+  WEEKLY
+  MONTHLY
+  CRON
+}
+
+enum WorkflowApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum WorkflowLogSeverity {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+enum FinanceDocumentStatus {
+  DRAFT
+  SENT
+  APPROVED
+  PARTIALLY_PAID
+  PAID
+  OVERDUE
+  VOID
+  CANCELLED
+}
+
+enum QuoteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  CONVERTED
+}
+
+enum ExpenseStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PAID
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  CARD
+  CASH
+  STRIPE
+  PAYPAL
+  MANUAL
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+  CANCELLED
+}
+
+enum PurchaseOrderStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  ORDERED
+  PARTIALLY_RECEIVED
+  RECEIVED
+  CANCELLED
+}
+
+enum RecurringBillingFrequency {
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  TRANSFER
+  ADJUSTMENT
+}
+
+enum AccountType {
+  BANK
+  CASH
+  CREDIT_CARD
+  REVENUE
+  EXPENSE
+  ASSET
+  LIABILITY
+  EQUITY
+}
+
+enum FinancialReportType {
+  PROFIT_AND_LOSS
+  REVENUE
+  EXPENSES
+  CASH_FLOW
+  TAX_SUMMARY
+  CUSTOMER_REVENUE
+  PROJECT_PROFITABILITY
+  DEPARTMENT_SPEND
+}
+
+enum CashFlowDirection {
+  INFLOW
+  OUTFLOW
+}
+
 model User {
   id                   String               @id @default(uuid()) @db.Uuid
   email                String               @unique
@@ -237,6 +498,25 @@ model User {
   documentPermissions  DocumentPermission[] @relation("DocumentPermissionUser")
   documentActivities   DocumentActivity[]   @relation("DocumentActivityActor")
   documentShares       DocumentShare[]      @relation("DocumentShareCreator")
+  createdConversations Conversation[]       @relation("ConversationCreator")
+  conversationMembers  ConversationMember[]
+  messages             Message[]            @relation("MessageAuthor")
+  messageAttachments   MessageAttachment[]  @relation("MessageAttachmentUploader")
+  messageReactions     MessageReaction[]
+  messageReadReceipts  MessageReadReceipt[]
+  threads              Thread[]             @relation("ThreadCreator")
+  announcements        Announcement[]       @relation("AnnouncementAuthor")
+  meetings             Meeting[]            @relation("MeetingOrganizer")
+  meetingParticipants  MeetingParticipant[]
+  meetingNotes         MeetingNote[]        @relation("MeetingNoteAuthor")
+  messageActivities    MessageActivity[]    @relation("MessageActivityActor")
+  notificationPrefs    NotificationPreference[]
+  workflows            Workflow[]             @relation("WorkflowCreator")
+  workflowExecutions   WorkflowExecution[]    @relation("WorkflowExecutionActor")
+  workflowApprovals    WorkflowApproval[]     @relation("WorkflowApprovalRequester")
+  workflowApprovalsReviewed WorkflowApproval[] @relation("WorkflowApprovalReviewer")
+  workflowAudits       WorkflowAudit[]        @relation("WorkflowAuditActor")
+  financeAudits        FinanceAudit[]         @relation("FinanceAuditActor")
   activeOrganisation   Organisation?        @relation("ActiveOrganisation", fields: [activeOrganisationId], references: [id], onDelete: SetNull)
 
   @@index([status])
@@ -289,6 +569,53 @@ model Organisation {
   documentTags        DocumentTag[]
   documentLinks       DocumentLink[]
   documentShares      DocumentShare[]
+  conversations       Conversation[]
+  conversationMembers ConversationMember[]
+  messages            Message[]
+  messageAttachments  MessageAttachment[]
+  messageReactions    MessageReaction[]
+  messageReadReceipts MessageReadReceipt[]
+  threads             Thread[]
+  announcements       Announcement[]
+  meetings            Meeting[]
+  meetingParticipants MeetingParticipant[]
+  meetingNotes        MeetingNote[]
+  meetingRecordings   MeetingRecording[]
+  messageActivities   MessageActivity[]
+  notificationPrefs   NotificationPreference[]
+  workflows           Workflow[]
+  workflowVersions    WorkflowVersion[]
+  workflowExecutions  WorkflowExecution[]
+  workflowTriggers    WorkflowTrigger[]
+  workflowConditions  WorkflowCondition[]
+  workflowActions     WorkflowAction[]
+  workflowVariables   WorkflowVariable[]
+  workflowTemplates   WorkflowTemplate[]
+  workflowSchedules   WorkflowSchedule[]
+  workflowApprovals   WorkflowApproval[]
+  workflowLogs        WorkflowLog[]
+  workflowAudits      WorkflowAudit[]
+  workflowErrors      WorkflowError[]
+  invoices            Invoice[]
+  invoiceItems        InvoiceItem[]
+  quotes              Quote[]
+  quoteItems          QuoteItem[]
+  expenses            Expense[]
+  expenseCategories   ExpenseCategory[]
+  payments            Payment[]
+  purchaseOrders      PurchaseOrder[]
+  purchaseOrderItems  PurchaseOrderItem[]
+  recurringInvoices   RecurringInvoice[]
+  subscriptions       Subscription[]
+  budgets             Budget[]
+  transactions        Transaction[]
+  accounts            Account[]
+  taxRates            TaxRate[]
+  currencies          Currency[]
+  financialReports    FinancialReport[]
+  cashFlowEntries     CashFlowEntry[]
+  journalEntries      JournalEntry[]
+  financeAudits       FinanceAudit[]
 
   @@index([ownerId])
   @@index([deletedAt])
@@ -474,6 +801,16 @@ model Company {
   activities     CustomerActivity[]
   tags           CompanyTag[]
   projects       Project[]
+  meetings       Meeting[]
+  meetingNotes   MeetingNote[]
+  invoices       Invoice[]
+  quotes         Quote[]
+  expenses       Expense[]
+  payments       Payment[]
+  purchaseOrders PurchaseOrder[]
+  subscriptions  Subscription[]
+  transactions   Transaction[]
+  cashFlowEntries CashFlowEntry[]
 
   @@index([organisationId, name])
   @@index([organisationId, status])
@@ -703,6 +1040,16 @@ model Project {
   files          ProjectFile[]
   boards         ProjectBoard[]
   activities     ProjectActivity[]
+  conversations  Conversation[]
+  meetings       Meeting[]
+  meetingNotes   MeetingNote[]
+  notificationPrefs NotificationPreference[]
+  invoices          Invoice[]
+  quotes            Quote[]
+  expenses          Expense[]
+  purchaseOrders    PurchaseOrder[]
+  budgets           Budget[]
+  cashFlowEntries   CashFlowEntry[]
 
   @@index([organisationId, name])
   @@index([organisationId, companyId])
@@ -745,6 +1092,8 @@ model Task {
   labels         TaskLabel[]
   timeEntries    TimeEntry[]
   activities     ProjectActivity[]
+  meetings       Meeting[]
+  meetingNotes   MeetingNote[]
 
   @@index([organisationId, projectId])
   @@index([organisationId, parentTaskId])
@@ -1007,6 +1356,8 @@ model Document {
   tags             DocumentTagAssignment[]
   links            DocumentLink[]
   shares           DocumentShare[]
+  meetings         Meeting[]
+  meetingNotes     MeetingNote[]
 
   @@unique([organisationId, storageKey])
   @@index([organisationId, folderId])
@@ -1156,4 +1507,649 @@ model DocumentShare {
   @@index([organisationId, documentId])
   @@index([organisationId, expiresAt])
   @@index([organisationId, revokedAt])
+}
+
+model Conversation {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organisationId String                 @db.Uuid
+  name           String?
+  description    String?
+  type           ConversationType
+  visibility     ConversationVisibility @default(PRIVATE)
+  department     String?
+  projectId      String?                @db.Uuid
+  isArchived     Boolean                @default(false)
+  isPinned       Boolean                @default(false)
+  createdById    String?                @db.Uuid
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  project        Project?               @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdBy      User?                  @relation("ConversationCreator", fields: [createdById], references: [id], onDelete: SetNull)
+  members        ConversationMember[]
+  messages       Message[]
+  threads        Thread[]
+  announcements  Announcement[]
+  activities     MessageActivity[]
+
+  @@index([organisationId, type])
+  @@index([organisationId, visibility])
+  @@index([organisationId, projectId])
+  @@index([organisationId, isArchived])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, updatedAt])
+}
+
+model ConversationMember {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organisationId String                 @db.Uuid
+  conversationId String                 @db.Uuid
+  userId         String                 @db.Uuid
+  role           ConversationMemberRole @default(MEMBER)
+  mutedUntil     DateTime?
+  lastReadAt     DateTime?
+  joinedAt       DateTime               @default(now())
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  conversation   Conversation           @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user           User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([organisationId, userId])
+  @@index([organisationId, conversationId])
+  @@index([deletedAt])
+}
+
+model Message {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  conversationId String               @db.Uuid
+  threadId       String?              @db.Uuid
+  authorId       String               @db.Uuid
+  parentId       String?              @db.Uuid
+  content        String
+  markdown       Boolean              @default(true)
+  mentions       String[]             @default([])
+  status         MessageStatus        @default(ACTIVE)
+  editedAt       DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  conversation   Conversation         @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  thread         Thread?              @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  author         User                 @relation("MessageAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  parent         Message?             @relation("MessageReplies", fields: [parentId], references: [id], onDelete: SetNull)
+  replies        Message[]            @relation("MessageReplies")
+  attachments    MessageAttachment[]
+  reactions      MessageReaction[]
+  readReceipts   MessageReadReceipt[]
+  activities     MessageActivity[]
+  startedThread  Thread?              @relation("ThreadRootMessage")
+
+  @@index([organisationId, conversationId, createdAt])
+  @@index([organisationId, threadId])
+  @@index([organisationId, authorId])
+  @@index([organisationId, parentId])
+  @@index([organisationId, status])
+  @@index([organisationId, deletedAt])
+}
+
+model MessageAttachment {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  messageId      String       @db.Uuid
+  uploadedById   String       @db.Uuid
+  fileName       String
+  storageKey     String
+  mimeType       String
+  fileSize       Int
+  checksum       String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  uploadedBy     User         @relation("MessageAttachmentUploader", fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([organisationId, messageId])
+  @@index([organisationId, uploadedById])
+  @@index([organisationId, deletedAt])
+}
+
+model MessageReaction {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  messageId      String       @db.Uuid
+  userId         String       @db.Uuid
+  emoji          String
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId, emoji])
+  @@index([organisationId, messageId])
+  @@index([organisationId, userId])
+  @@index([deletedAt])
+}
+
+model MessageReadReceipt {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  messageId      String       @db.Uuid
+  userId         String       @db.Uuid
+  readAt         DateTime     @default(now())
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  message        Message      @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([organisationId, userId])
+  @@index([organisationId, readAt])
+}
+
+model Thread {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  conversationId String       @db.Uuid
+  rootMessageId  String       @unique @db.Uuid
+  title          String?
+  createdById    String       @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  rootMessage    Message      @relation("ThreadRootMessage", fields: [rootMessageId], references: [id], onDelete: Cascade)
+  createdBy      User         @relation("ThreadCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  messages       Message[]
+
+  @@index([organisationId, conversationId])
+  @@index([organisationId, createdById])
+  @@index([organisationId, deletedAt])
+}
+
+model Announcement {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  conversationId String?              @db.Uuid
+  authorId       String               @db.Uuid
+  title          String
+  body           String
+  priority       AnnouncementPriority @default(NORMAL)
+  isPinned       Boolean              @default(false)
+  expiresAt      DateTime?
+  publishedAt    DateTime?
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  conversation   Conversation?        @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  author         User                 @relation("AnnouncementAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([organisationId, priority])
+  @@index([organisationId, isPinned])
+  @@index([organisationId, publishedAt])
+  @@index([organisationId, expiresAt])
+  @@index([organisationId, deletedAt])
+}
+
+model Meeting {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  organizerId    String               @db.Uuid
+  title          String
+  description    String?
+  agenda         String?
+  location       String?
+  videoUrl       String?
+  status         MeetingStatus        @default(SCHEDULED)
+  startsAt       DateTime
+  endsAt         DateTime
+  projectId      String?              @db.Uuid
+  companyId      String?              @db.Uuid
+  documentId     String?              @db.Uuid
+  taskId         String?              @db.Uuid
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  organizer      User                 @relation("MeetingOrganizer", fields: [organizerId], references: [id], onDelete: Restrict)
+  project        Project?             @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  company        Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  document       Document?            @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  task           Task?                @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  participants   MeetingParticipant[]
+  notes          MeetingNote[]
+  recordings     MeetingRecording[]
+
+  @@index([organisationId, organizerId])
+  @@index([organisationId, startsAt])
+  @@index([organisationId, status])
+  @@index([organisationId, projectId])
+  @@index([organisationId, companyId])
+  @@index([organisationId, deletedAt])
+}
+
+model MeetingParticipant {
+  id             String                   @id @default(uuid()) @db.Uuid
+  organisationId String                   @db.Uuid
+  meetingId      String                   @db.Uuid
+  userId         String?                  @db.Uuid
+  email          String?
+  name           String?
+  status         MeetingParticipantStatus @default(INVITED)
+  role           String?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation             @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  meeting        Meeting                  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  user           User?                    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, meetingId])
+  @@index([organisationId, userId])
+  @@index([organisationId, status])
+  @@index([deletedAt])
+}
+
+model MeetingNote {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  meetingId      String       @db.Uuid
+  authorId       String       @db.Uuid
+  title          String
+  content        String
+  actionItems    Json?
+  projectId      String?      @db.Uuid
+  companyId      String?      @db.Uuid
+  documentId     String?      @db.Uuid
+  taskId         String?      @db.Uuid
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  meeting        Meeting      @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  author         User         @relation("MeetingNoteAuthor", fields: [authorId], references: [id], onDelete: Restrict)
+  project        Project?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  company        Company?     @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  document       Document?    @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  task           Task?        @relation(fields: [taskId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, meetingId])
+  @@index([organisationId, authorId])
+  @@index([organisationId, projectId])
+  @@index([organisationId, companyId])
+  @@index([organisationId, deletedAt])
+}
+
+model MeetingRecording {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  meetingId      String       @db.Uuid
+  title          String
+  storageKey     String?
+  durationSecs   Int?
+  transcriptKey  String?
+  status         String       @default("PLACEHOLDER")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  meeting        Meeting      @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, meetingId])
+  @@index([organisationId, status])
+  @@index([organisationId, deletedAt])
+}
+
+model MessageActivity {
+  id             String                @id @default(uuid()) @db.Uuid
+  organisationId String                @db.Uuid
+  conversationId String?               @db.Uuid
+  messageId      String?               @db.Uuid
+  actorId        String?               @db.Uuid
+  action         MessageActivityAction
+  metadata       Json?
+  createdAt      DateTime              @default(now())
+  updatedAt      DateTime              @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation          @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  conversation   Conversation?         @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+  message        Message?              @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  actor          User?                 @relation("MessageActivityActor", fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, conversationId])
+  @@index([organisationId, messageId])
+  @@index([organisationId, action])
+  @@index([organisationId, createdAt])
+}
+
+model NotificationPreference {
+  id               String         @id @default(uuid()) @db.Uuid
+  organisationId   String         @db.Uuid
+  userId           String         @db.Uuid
+  channel          String         @default("in_app")
+  mentions         Boolean        @default(true)
+  directMessages   Boolean        @default(true)
+  announcements    Boolean        @default(true)
+  meetings         Boolean        @default(true)
+  quietHoursStart  String?
+  quietHoursEnd    String?
+  presenceStatus   PresenceStatus @default(OFFLINE)
+  presenceMessage  String?
+  currentProjectId String?        @db.Uuid
+  lastSeenAt       DateTime?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  deletedAt        DateTime?
+  organisation     Organisation   @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  user             User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentProject   Project?       @relation(fields: [currentProjectId], references: [id], onDelete: SetNull)
+
+  @@unique([organisationId, userId, channel])
+  @@index([organisationId, userId])
+  @@index([organisationId, presenceStatus])
+  @@index([organisationId, deletedAt])
+}
+
+model Workflow {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String              @db.Uuid
+  name           String
+  description    String?
+  status         WorkflowStatus      @default(DRAFT)
+  enabled        Boolean             @default(false)
+  triggerType    WorkflowTriggerType @default(MANUAL)
+  createdById    String              @db.Uuid
+  currentVersion Int                 @default(1)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  createdBy      User                @relation("WorkflowCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  versions       WorkflowVersion[]
+  executions     WorkflowExecution[]
+  triggers       WorkflowTrigger[]
+  conditions     WorkflowCondition[]
+  actions        WorkflowAction[]
+  variables      WorkflowVariable[]
+  schedules      WorkflowSchedule[]
+  approvals      WorkflowApproval[]
+  logs           WorkflowLog[]
+  audits         WorkflowAudit[]
+  errors         WorkflowError[]
+
+  @@index([organisationId, status])
+  @@index([organisationId, enabled])
+  @@index([organisationId, triggerType])
+  @@index([organisationId, createdById])
+  @@index([organisationId, deletedAt])
+  @@index([organisationId, updatedAt])
+}
+
+model WorkflowVersion {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  workflowId     String       @db.Uuid
+  version        Int
+  definition     Json
+  notes          String?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow     @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([workflowId, version])
+  @@index([organisationId, workflowId])
+  @@index([organisationId, version])
+}
+
+model WorkflowExecution {
+  id             String                  @id @default(uuid()) @db.Uuid
+  organisationId String                  @db.Uuid
+  workflowId     String                  @db.Uuid
+  triggeredById  String?                 @db.Uuid
+  status         WorkflowExecutionStatus @default(QUEUED)
+  triggerPayload Json?
+  context        Json?
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  durationMs     Int?
+  retryCount     Int                     @default(0)
+  createdAt      DateTime                @default(now())
+  updatedAt      DateTime                @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation            @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow                @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  triggeredBy    User?                   @relation("WorkflowExecutionActor", fields: [triggeredById], references: [id], onDelete: SetNull)
+  logs           WorkflowLog[]
+  approvals      WorkflowApproval[]
+  errors         WorkflowError[]
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, status])
+  @@index([organisationId, triggeredById])
+  @@index([organisationId, createdAt])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowTrigger {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String              @db.Uuid
+  workflowId     String              @db.Uuid
+  type           WorkflowTriggerType
+  config         Json?
+  enabled        Boolean             @default(true)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow            @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, type])
+  @@index([organisationId, enabled])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowCondition {
+  id             String                    @id @default(uuid()) @db.Uuid
+  organisationId String                    @db.Uuid
+  workflowId     String                    @db.Uuid
+  operator       WorkflowConditionOperator
+  field          String
+  value          Json?
+  position       Int                       @default(0)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation              @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow                  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, operator])
+  @@index([organisationId, position])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowAction {
+  id             String             @id @default(uuid()) @db.Uuid
+  organisationId String             @db.Uuid
+  workflowId     String             @db.Uuid
+  type           WorkflowActionType
+  name           String
+  config         Json?
+  position       Int                @default(0)
+  retryPolicy    Json?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow           @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, type])
+  @@index([organisationId, position])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowVariable {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  workflowId     String?      @db.Uuid
+  key            String
+  value          Json?
+  isSecret       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow?    @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@unique([organisationId, workflowId, key])
+  @@index([organisationId, key])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowTemplate {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String?      @db.Uuid
+  name           String
+  description    String?
+  category       String
+  definition     Json
+  isSystem       Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation? @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, category])
+  @@index([category])
+  @@index([isSystem])
+  @@index([deletedAt])
+}
+
+model WorkflowSchedule {
+  id             String               @id @default(uuid()) @db.Uuid
+  organisationId String               @db.Uuid
+  workflowId     String               @db.Uuid
+  type           WorkflowScheduleType
+  cronExpression String?
+  timezone       String               @default("UTC")
+  nextRunAt      DateTime?
+  lastRunAt      DateTime?
+  enabled        Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation         @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow             @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, nextRunAt])
+  @@index([organisationId, enabled])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowApproval {
+  id             String                 @id @default(uuid()) @db.Uuid
+  organisationId String                 @db.Uuid
+  workflowId     String                 @db.Uuid
+  executionId    String?                @db.Uuid
+  requestedById  String?                @db.Uuid
+  reviewerId     String?                @db.Uuid
+  status         WorkflowApprovalStatus @default(PENDING)
+  title          String
+  details        Json?
+  decidedAt      DateTime?
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation           @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow               @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  execution      WorkflowExecution?     @relation(fields: [executionId], references: [id], onDelete: SetNull)
+  requestedBy    User?                  @relation("WorkflowApprovalRequester", fields: [requestedById], references: [id], onDelete: SetNull)
+  reviewer       User?                  @relation("WorkflowApprovalReviewer", fields: [reviewerId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, executionId])
+  @@index([organisationId, status])
+  @@index([organisationId, reviewerId])
+  @@index([organisationId, deletedAt])
+}
+
+model WorkflowLog {
+  id             String              @id @default(uuid()) @db.Uuid
+  organisationId String              @db.Uuid
+  workflowId     String?             @db.Uuid
+  executionId    String?             @db.Uuid
+  severity       WorkflowLogSeverity @default(INFO)
+  step           String?
+  message        String
+  metadata       Json?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation        @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow?           @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  execution      WorkflowExecution?  @relation(fields: [executionId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, executionId])
+  @@index([organisationId, severity])
+  @@index([organisationId, createdAt])
+}
+
+model WorkflowAudit {
+  id             String       @id @default(uuid()) @db.Uuid
+  organisationId String       @db.Uuid
+  workflowId     String?      @db.Uuid
+  actorUserId    String?      @db.Uuid
+  action         String
+  metadata       Json?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow?    @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  actorUser      User?        @relation("WorkflowAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, actorUserId])
+  @@index([organisationId, action])
+  @@index([organisationId, createdAt])
+}
+
+model WorkflowError {
+  id             String             @id @default(uuid()) @db.Uuid
+  organisationId String             @db.Uuid
+  workflowId     String?            @db.Uuid
+  executionId    String?            @db.Uuid
+  code           String?
+  message        String
+  stack          String?
+  retryable      Boolean            @default(false)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  deletedAt      DateTime?
+  organisation   Organisation       @relation(fields: [organisationId], references: [id], onDelete: Cascade)
+  workflow       Workflow?          @relation(fields: [workflowId], references: [id], onDelete: SetNull)
+  execution      WorkflowExecution? @relation(fields: [executionId], references: [id], onDelete: SetNull)
+
+  @@index([organisationId, workflowId])
+  @@index([organisationId, executionId])
+  @@index([organisationId, retryable])
+  @@index([organisationId, createdAt])
 }

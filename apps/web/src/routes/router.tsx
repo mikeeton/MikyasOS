@@ -202,6 +202,101 @@ const DocumentsNotePlaceholderPage = lazy(() =>
     default: module.DocumentsNotePlaceholderPage,
   })),
 );
+const AiWorkspacePage = lazy(() =>
+  import('@/features/ai/pages/ai-pages').then((module) => ({
+    default: module.AiWorkspacePage,
+  })),
+);
+const AiHistoryPage = lazy(() =>
+  import('@/features/ai/pages/ai-pages').then((module) => ({
+    default: module.AiHistoryPage,
+  })),
+);
+const AiSettingsPage = lazy(() =>
+  import('@/features/ai/pages/ai-pages').then((module) => ({
+    default: module.AiSettingsPage,
+  })),
+);
+const AiMemoryPage = lazy(() =>
+  import('@/features/ai/pages/ai-pages').then((module) => ({
+    default: module.AiMemoryPage,
+  })),
+);
+const AiPromptsPage = lazy(() =>
+  import('@/features/ai/pages/ai-pages').then((module) => ({
+    default: module.AiPromptsPage,
+  })),
+);
+const ChatPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.ChatPage,
+  })),
+);
+const ConversationPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.ConversationPage,
+  })),
+);
+const ChannelsPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.ChannelsPage,
+  })),
+);
+const AnnouncementsPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.AnnouncementsPage,
+  })),
+);
+const MeetingsPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.MeetingsPage,
+  })),
+);
+const MeetingDetailPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.MeetingDetailPage,
+  })),
+);
+const MeetingNotesPage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.MeetingNotesPage,
+  })),
+);
+const PresencePage = lazy(() =>
+  import('@/features/communication/pages/communication-pages').then((module) => ({
+    default: module.PresencePage,
+  })),
+);
+const AutomationDashboardPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationDashboardPage,
+  })),
+);
+const AutomationWorkflowsPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationWorkflowsPage,
+  })),
+);
+const AutomationTemplatesPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationTemplatesPage,
+  })),
+);
+const AutomationHistoryPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationHistoryPage,
+  })),
+);
+const AutomationLogsPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationLogsPage,
+  })),
+);
+const AutomationSettingsPage = lazy(() =>
+  import('@/features/automation/pages/automation-pages').then((module) => ({
+    default: module.AutomationSettingsPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -420,6 +515,82 @@ export const router = createBrowserRouter([
           {
             path: 'documents/:id',
             element: withSuspense(<DocumentDetailPage />),
+          },
+          {
+            path: 'ai',
+            element: withSuspense(<AiWorkspacePage />),
+          },
+          {
+            path: 'ai/history',
+            element: withSuspense(<AiHistoryPage />),
+          },
+          {
+            path: 'ai/settings',
+            element: withSuspense(<AiSettingsPage />),
+          },
+          {
+            path: 'ai/memory',
+            element: withSuspense(<AiMemoryPage />),
+          },
+          {
+            path: 'ai/prompts',
+            element: withSuspense(<AiPromptsPage />),
+          },
+          {
+            path: 'chat',
+            element: withSuspense(<ChatPage />),
+          },
+          {
+            path: 'chat/:conversationId',
+            element: withSuspense(<ConversationPage />),
+          },
+          {
+            path: 'channels',
+            element: withSuspense(<ChannelsPage />),
+          },
+          {
+            path: 'announcements',
+            element: withSuspense(<AnnouncementsPage />),
+          },
+          {
+            path: 'meetings',
+            element: withSuspense(<MeetingsPage />),
+          },
+          {
+            path: 'meetings/:id',
+            element: withSuspense(<MeetingDetailPage />),
+          },
+          {
+            path: 'meeting-notes',
+            element: withSuspense(<MeetingNotesPage />),
+          },
+          {
+            path: 'presence',
+            element: withSuspense(<PresencePage />),
+          },
+          {
+            path: 'automation',
+            element: withSuspense(<AutomationDashboardPage />),
+          },
+          {
+            path: 'automation/workflows',
+            element: withSuspense(<AutomationWorkflowsPage />),
+          },
+          {
+            path: 'automation/templates',
+            element: withSuspense(<AutomationTemplatesPage />),
+          },
+          {
+            path: 'automation/history',
+            element: withSuspense(<AutomationHistoryPage />),
+          },
+          {
+            path: 'automation/logs',
+            element: withSuspense(<AutomationLogsPage />),
+          },
+          {
+            path: 'automation/settings',
+            element: withSuspense(<AutomationSettingsPage />),
           },
         ],
       },

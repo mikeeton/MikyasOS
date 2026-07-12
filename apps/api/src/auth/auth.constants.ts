@@ -38,6 +38,22 @@ export const DEFAULT_PERMISSIONS = [
   'Folder.Delete',
   'Folder.ManagePermissions',
   'DocumentTag.Manage',
+  'AI.Read',
+  'AI.Use',
+  'AI.ManageSettings',
+  'AI.ManagePrompts',
+  'AI.ManageMemory',
+  'Communication.Read',
+  'Communication.Write',
+  'Communication.Manage',
+  'Meetings.Read',
+  'Meetings.Write',
+  'Announcements.Manage',
+  'Automation.Read',
+  'Automation.Write',
+  'Automation.Manage',
+  'Automation.Execute',
+  'Automation.Approve',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

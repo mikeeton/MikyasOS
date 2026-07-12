@@ -56,6 +56,12 @@ export type WorkQuery = CrmQuery & {
   assigneeId?: string;
 };
 
+export type AutomationQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+};
+
 export type CrmTag = {
   id: string;
   name: string;
@@ -252,6 +258,195 @@ export type ProjectAiPromptTemplates = {
     guardrails: string[];
   }>;
   promptExecutionEnabled: false;
+};
+
+export type AiOsCapabilities = {
+  architecture: string;
+  orchestrator: string;
+  services: string[];
+  agents: string[];
+  execution: {
+    modelCallsEnabled: boolean;
+    actionExecutionEnabled: boolean;
+    confirmationRequired: boolean;
+  };
+  security: {
+    organisationIsolation: boolean;
+    rbac: boolean;
+    auditLogging: boolean;
+  };
+};
+
+export type AiPromptTemplates = {
+  templates: Array<{
+    key: string;
+    title: string;
+    objective: string;
+    guardrails: string[];
+  }>;
+  promptExecutionEnabled: false;
+  storage: string;
+  directPromptHardcoding: false;
+};
+
+export type AiMemoryOverview = {
+  conversationMemory: Record<string, unknown>;
+  businessMemory: {
+    enabled: boolean;
+    organisationScoped: boolean;
+    documentCount: number;
+    projectCount: number;
+    companyCount: number;
+  };
+  preferences: unknown[];
+  importantFacts: unknown[];
+  pinnedMemories: unknown[];
+  recentActions: Array<{
+    id: string;
+    action: string;
+    entityType: string;
+    entityId?: string | null;
+    createdAt: string;
+  }>;
+  episodicMemoryPrepared: boolean;
+};
+
+export type AiSettingsOverview = {
+  provider: {
+    name: string;
+    configured: boolean;
+  };
+  guardrails: Record<string, unknown>;
+  features: Record<string, boolean>;
+};
+
+export type AiRetrievalStatus = {
+  pgvectorPrepared: boolean;
+  embeddingsEnabled: boolean;
+  semanticSearchEnabled: boolean;
+  retrievableSources: string[];
+  futureSources: string[];
+  embeddings: Record<string, unknown>;
+};
+
+export type AiActionCatalogue = {
+  actions: Array<{
+    key: string;
+    requiresConfirmation: boolean;
+    executionEnabled: boolean;
+    status: string;
+  }>;
+};
+
+export type AiOrchestrateResponse = {
+  response: {
+    answer: string;
+    confidence: 'low' | 'medium' | 'high';
+    citations: Array<{ type: string; id: string; title: string }>;
+    suggestedActions: Array<{
+      key: string;
+      label: string;
+      requiresConfirmation: true;
+      status: string;
+    }>;
+    safety: Record<string, boolean>;
+  };
+  context: Record<string, unknown>;
+  retrieval: Record<string, unknown>;
+  reasoning: Record<string, unknown>;
+  streamingPrepared: boolean;
+  modelExecutionEnabled: boolean;
+};
+
+export type CommunicationQuery = {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+};
+
+export type Conversation = {
+  id: string;
+  organisationId: string;
+  name?: string | null;
+  description?: string | null;
+  type: string;
+  visibility: string;
+  isArchived: boolean;
+  isPinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  _count?: { messages?: number };
+};
+
+export type CommunicationMessage = {
+  id: string;
+  conversationId: string;
+  authorId: string;
+  content: string;
+  markdown: boolean;
+  mentions: string[];
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+  author?: Pick<User, 'id' | 'name' | 'email'>;
+  reactions?: Array<{ id: string; emoji: string; userId: string }>;
+};
+
+export type Announcement = {
+  id: string;
+  title: string;
+  body: string;
+  priority: string;
+  isPinned: boolean;
+  publishedAt?: string | null;
+  expiresAt?: string | null;
+  createdAt: string;
+  author?: Pick<User, 'id' | 'name' | 'email'>;
+};
+
+export type Meeting = {
+  id: string;
+  title: string;
+  description?: string | null;
+  agenda?: string | null;
+  location?: string | null;
+  videoUrl?: string | null;
+  status: string;
+  startsAt: string;
+  endsAt: string;
+  participants?: Array<{ id: string; email?: string | null; name?: string | null; status: string }>;
+  notes?: MeetingNote[];
+};
+
+export type MeetingNote = {
+  id: string;
+  meetingId: string;
+  title: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  meeting?: Pick<Meeting, 'id' | 'title' | 'startsAt'>;
+  author?: Pick<User, 'id' | 'name' | 'email'>;
+};
+
+export type PresenceRecord = {
+  id: string;
+  userId: string;
+  presenceStatus: string;
+  presenceMessage?: string | null;
+  lastSeenAt?: string | null;
+  user?: Pick<User, 'id' | 'name' | 'email'>;
+  currentProject?: Pick<Project, 'id' | 'name'> | null;
+};
+
+export type CommunicationCapabilities = {
+  modules: string[];
+  realtime: {
+    websocketNamespace: string;
+    events: string[];
+  };
+  aiPreparation: Record<string, unknown>;
+  notifications: Record<string, unknown>;
 };
 
 export type DocumentQuery = CrmQuery & {
@@ -1004,5 +1199,379 @@ export const documentsApi = {
     apiRequest<DocumentAiReadiness>(`/documents/${documentId}/ai/readiness`, {
       token,
       organisationId,
+    }),
+};
+
+export const aiOsApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<AiOsCapabilities>('/ai/capabilities', { token, organisationId }),
+  prompts: (token: string, organisationId: string) =>
+    apiRequest<AiPromptTemplates>('/ai/prompts', { token, organisationId }),
+  memory: (token: string, organisationId: string) =>
+    apiRequest<AiMemoryOverview>('/ai/memory', { token, organisationId }),
+  settings: (token: string, organisationId: string) =>
+    apiRequest<AiSettingsOverview>('/ai/settings', { token, organisationId }),
+  retrievalStatus: (token: string, organisationId: string) =>
+    apiRequest<AiRetrievalStatus>('/ai/retrieval/status', { token, organisationId }),
+  actions: (token: string, organisationId: string) =>
+    apiRequest<AiActionCatalogue>('/ai/actions', { token, organisationId }),
+  conversations: (token: string, organisationId: string) =>
+    apiRequest<{
+      conversations: unknown[];
+      threadingEnabled: boolean;
+      streamingPrepared: boolean;
+      markdownEnabled: boolean;
+      citationsEnabled: boolean;
+    }>('/ai/conversations', { token, organisationId }),
+  orchestrate: (
+    token: string,
+    organisationId: string,
+    body: { message: string; currentPage?: string },
+  ) =>
+    apiRequest<AiOrchestrateResponse>('/ai/orchestrate', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+};
+
+export type WorkflowTriggerType =
+  | 'CUSTOMER_CREATED'
+  | 'LEAD_WON'
+  | 'PROJECT_CREATED'
+  | 'TASK_COMPLETED'
+  | 'DOCUMENT_UPLOADED'
+  | 'MEETING_ENDED'
+  | 'INVOICE_PAID'
+  | 'CALENDAR_EVENT'
+  | 'WEBHOOK_RECEIVED'
+  | 'MANUAL'
+  | 'SCHEDULED';
+
+export type WorkflowActionType =
+  | 'CREATE_TASK'
+  | 'ASSIGN_TASK'
+  | 'CREATE_PROJECT'
+  | 'CREATE_COMPANY'
+  | 'CREATE_CONTACT'
+  | 'SEND_NOTIFICATION'
+  | 'SEND_EMAIL'
+  | 'GENERATE_AI_SUMMARY'
+  | 'CREATE_MEETING'
+  | 'CREATE_CALENDAR_EVENT'
+  | 'MOVE_CRM_STAGE'
+  | 'UPDATE_RECORD'
+  | 'CREATE_DOCUMENT'
+  | 'RUN_WEBHOOK'
+  | 'WAIT'
+  | 'APPROVAL';
+
+export type Workflow = {
+  id: string;
+  organisationId: string;
+  name: string;
+  description?: string | null;
+  status: 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  enabled: boolean;
+  triggerType: WorkflowTriggerType;
+  createdAt: string;
+  updatedAt: string;
+  triggers?: WorkflowTrigger[];
+  conditions?: WorkflowCondition[];
+  actions?: WorkflowAction[];
+  schedules?: WorkflowSchedule[];
+  _count?: { executions: number };
+};
+
+export type WorkflowTrigger = {
+  id: string;
+  type: WorkflowTriggerType;
+  config: Record<string, unknown>;
+};
+
+export type WorkflowCondition = {
+  id?: string;
+  operator: string;
+  field: string;
+  value?: unknown;
+  position?: number;
+};
+
+export type WorkflowAction = {
+  id?: string;
+  type: WorkflowActionType;
+  name: string;
+  config?: Record<string, unknown>;
+  position?: number;
+};
+
+export type WorkflowExecution = {
+  id: string;
+  workflowId: string;
+  status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED' | 'WAITING_APPROVAL';
+  triggerPayload?: Record<string, unknown>;
+  context?: Record<string, unknown>;
+  startedAt?: string | null;
+  finishedAt?: string | null;
+  durationMs?: number | null;
+  createdAt: string;
+  workflow?: Pick<Workflow, 'id' | 'name'>;
+  logs?: WorkflowLog[];
+  errors?: WorkflowError[];
+};
+
+export type WorkflowLog = {
+  id: string;
+  workflowId: string;
+  executionId?: string | null;
+  step: string;
+  message: string;
+  severity: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
+  createdAt: string;
+  workflow?: Pick<Workflow, 'id' | 'name'>;
+};
+
+export type WorkflowError = {
+  id: string;
+  code: string;
+  message: string;
+  createdAt: string;
+};
+
+export type WorkflowTemplate = {
+  id: string;
+  name: string;
+  description?: string | null;
+  category: string;
+  isSystem: boolean;
+  definition: Record<string, unknown>;
+};
+
+export type WorkflowSchedule = {
+  id: string;
+  workflowId: string;
+  type: 'ONCE' | 'HOURLY' | 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'CRON';
+  cronExpression?: string | null;
+  timezone: string;
+  nextRunAt?: string | null;
+  workflow?: Pick<Workflow, 'id' | 'name'>;
+};
+
+export type WorkflowVariable = {
+  id: string;
+  workflowId?: string | null;
+  key: string;
+  value: unknown;
+  isSecret: boolean;
+};
+
+export type WorkflowApproval = {
+  id: string;
+  workflowId: string;
+  executionId?: string | null;
+  title: string;
+  details: Record<string, unknown>;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
+  createdAt: string;
+  decidedAt?: string | null;
+  workflow?: Pick<Workflow, 'id' | 'name'>;
+};
+
+export type AutomationCapabilities = {
+  architecture: string[];
+  triggers: string[];
+  actions: string[];
+  queue: {
+    queue: string;
+    jobs: string[];
+    backgroundExecution: boolean;
+    retryReady: boolean;
+    scheduledJobsReady: boolean;
+  };
+  aiPreparation: Record<string, unknown>;
+};
+
+export type CreateWorkflowBody = {
+  name: string;
+  description?: string;
+  status?: Workflow['status'];
+  enabled?: boolean;
+  triggerType: WorkflowTriggerType;
+  triggerConfig?: Record<string, unknown>;
+  conditions?: Array<Pick<WorkflowCondition, 'operator' | 'field' | 'value'>>;
+  actions?: Array<Pick<WorkflowAction, 'type' | 'name' | 'config'>>;
+};
+
+export const automationApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<AutomationCapabilities>('/automation/capabilities', { token, organisationId }),
+  workflows: (token: string, organisationId: string, query: AutomationQuery = {}) =>
+    apiRequest<PaginatedResult<Workflow>>(`/automation/workflows${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  workflow: (token: string, organisationId: string, id: string) =>
+    apiRequest<Workflow>(`/automation/workflows/${id}`, { token, organisationId }),
+  createWorkflow: (token: string, organisationId: string, body: CreateWorkflowBody) =>
+    apiRequest<Workflow>('/automation/workflows', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  updateWorkflow: (token: string, organisationId: string, id: string, body: Partial<Workflow>) =>
+    apiRequest<Workflow>(`/automation/workflows/${id}`, {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  executeWorkflow: (
+    token: string,
+    organisationId: string,
+    id: string,
+    payload: Record<string, unknown> = {},
+  ) =>
+    apiRequest<WorkflowExecution>(`/automation/workflows/${id}/execute`, {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify({ payload }),
+    }),
+  executions: (token: string, organisationId: string) =>
+    apiRequest<WorkflowExecution[]>('/automation/executions', { token, organisationId }),
+  history: (token: string, organisationId: string) =>
+    apiRequest<WorkflowExecution[]>('/automation/history', { token, organisationId }),
+  logs: (token: string, organisationId: string) =>
+    apiRequest<WorkflowLog[]>('/automation/logs', { token, organisationId }),
+  templates: (token: string, organisationId: string) =>
+    apiRequest<WorkflowTemplate[]>('/automation/templates', { token, organisationId }),
+  schedules: (token: string, organisationId: string) =>
+    apiRequest<WorkflowSchedule[]>('/automation/schedules', { token, organisationId }),
+  createSchedule: (
+    token: string,
+    organisationId: string,
+    body: Pick<WorkflowSchedule, 'workflowId' | 'type'> &
+      Partial<Pick<WorkflowSchedule, 'cronExpression' | 'timezone'>>,
+  ) =>
+    apiRequest<WorkflowSchedule>('/automation/schedules', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  variables: (token: string, organisationId: string) =>
+    apiRequest<WorkflowVariable[]>('/automation/variables', { token, organisationId }),
+  createVariable: (
+    token: string,
+    organisationId: string,
+    body: Pick<WorkflowVariable, 'key'> & Partial<WorkflowVariable>,
+  ) =>
+    apiRequest<WorkflowVariable>('/automation/variables', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  approvals: (token: string, organisationId: string) =>
+    apiRequest<WorkflowApproval[]>('/automation/approvals', { token, organisationId }),
+};
+
+export const communicationApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<CommunicationCapabilities>('/communication/capabilities', {
+      token,
+      organisationId,
+    }),
+  conversations: (token: string, organisationId: string, query: CommunicationQuery = {}) =>
+    apiRequest<PaginatedResult<Conversation>>(`/conversations${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  conversation: (token: string, organisationId: string, id: string) =>
+    apiRequest<Conversation>(`/conversations/${id}`, { token, organisationId }),
+  createConversation: (
+    token: string,
+    organisationId: string,
+    body: Partial<Conversation> & { memberUserIds?: string[] },
+  ) =>
+    apiRequest<Conversation>('/conversations', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  messages: (token: string, organisationId: string, conversationId: string) =>
+    apiRequest<PaginatedResult<CommunicationMessage>>(`/messages/conversation/${conversationId}`, {
+      token,
+      organisationId,
+    }),
+  createMessage: (
+    token: string,
+    organisationId: string,
+    body: Pick<CommunicationMessage, 'conversationId' | 'content'> &
+      Partial<Pick<CommunicationMessage, 'mentions' | 'markdown'>>,
+  ) =>
+    apiRequest<CommunicationMessage>('/messages', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  announcements: (token: string, organisationId: string, query: CommunicationQuery = {}) =>
+    apiRequest<PaginatedResult<Announcement>>(`/announcements${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createAnnouncement: (token: string, organisationId: string, body: Partial<Announcement>) =>
+    apiRequest<Announcement>('/announcements', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  meetings: (token: string, organisationId: string, query: CommunicationQuery = {}) =>
+    apiRequest<PaginatedResult<Meeting>>(`/meetings${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  meeting: (token: string, organisationId: string, id: string) =>
+    apiRequest<Meeting>(`/meetings/${id}`, { token, organisationId }),
+  createMeeting: (token: string, organisationId: string, body: Partial<Meeting>) =>
+    apiRequest<Meeting>('/meetings', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  meetingNotes: (token: string, organisationId: string, query: CommunicationQuery = {}) =>
+    apiRequest<MeetingNote[]>(`/meeting-notes${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createMeetingNote: (
+    token: string,
+    organisationId: string,
+    body: Pick<MeetingNote, 'meetingId' | 'title' | 'content'>,
+  ) =>
+    apiRequest<MeetingNote>('/meeting-notes', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  presence: (token: string, organisationId: string) =>
+    apiRequest<PresenceRecord[]>('/presence', { token, organisationId }),
+  updatePresence: (
+    token: string,
+    organisationId: string,
+    body: Pick<PresenceRecord, 'presenceStatus'> & Partial<PresenceRecord>,
+  ) =>
+    apiRequest<PresenceRecord>('/presence/me', {
+      method: 'PATCH',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
     }),
 };
