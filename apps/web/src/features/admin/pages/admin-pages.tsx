@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Activity,
   AlertTriangle,
@@ -11,10 +12,19 @@ import {
   ShieldCheck,
   Siren,
   UsersRound,
+  MailPlus,
+  UserX,
+  KeyRound,
+  LogOut,
+  Shield,
+  Search,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import type { AdminRecord } from '@/api/client';
+import { enterpriseApi, identityApi, type AdminRecord } from '@/api/client';
+import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
+import { useAuthStore } from '@/stores/auth-store';
+import { formString } from '@/lib/form-data';
 import {
   useEnterpriseCapabilities,
   useEnterpriseDashboard,
@@ -49,6 +59,72 @@ const platformNav = [
   ['/app/admin/platform/integrations', 'Integrations'],
   ['/app/admin/platform/ai-health', 'AI Health'],
   ['/app/admin/platform/costs', 'Costs'],
+] as const;
+
+const permissionModules = [
+  'CRM',
+  'Projects',
+  'Finance',
+  'Documents',
+  'Analytics',
+  'Automation',
+  'AI',
+  'Settings',
+  'Administration',
+  'Notifications',
+  'Integrations',
+] as const;
+
+const permissionActions = [
+  'View',
+  'Create',
+  'Edit',
+  'Delete',
+  'Approve',
+  'Export',
+  'Import',
+  'Assign',
+  'Manage',
+] as const;
+
+const roleTemplates = [
+  {
+    name: 'Owner',
+    description: 'Full organisation ownership, billing, security, and deletion authority.',
+    permissions: permissionModules.flatMap((module) =>
+      permissionActions.map((action) => `${module}.${action}`),
+    ),
+  },
+  {
+    name: 'Finance Manager',
+    description: 'Finance visibility, invoices, expenses, approvals, exports, and reports.',
+    permissions: [
+      'Finance.View',
+      'Finance.Create',
+      'Finance.Edit',
+      'Finance.Approve',
+      'Finance.Export',
+      'Analytics.View',
+    ],
+  },
+  {
+    name: 'Project Manager',
+    description: 'Project delivery, task assignment, documents, limited CRM visibility.',
+    permissions: [
+      'Projects.View',
+      'Projects.Create',
+      'Projects.Edit',
+      'Projects.Assign',
+      'Documents.View',
+      'Documents.Create',
+      'CRM.View',
+    ],
+  },
+  {
+    name: 'Guest',
+    description: 'Restricted assigned work and document upload access.',
+    permissions: ['Projects.View', 'Documents.View', 'Documents.Create'],
+  },
 ] as const;
 
 function rows(data?: { items: AdminRecord[] }) {
@@ -201,14 +277,256 @@ export function BusinessUnitsPage() {
   );
 }
 
+export function AdminUsersPage() {
+  const token = useAuthStore((state) => state.accessToken);
+  const { currentOrganisation, currentUser } = useWorkspace();
+  const queryClient = useQueryClient();
+  const roles = useQuery({
+    queryKey: ['admin', currentOrganisation?.id, 'identity-roles'],
+    queryFn: () => identityApi.roles(token!, currentOrganisation!.id),
+    enabled: Boolean(token && currentOrganisation?.id),
+  });
+  const invite = useMutation({
+    mutationFn: (body: { email: string; roleId: string }) =>
+      identityApi.inviteUser(token!, currentOrganisation!.id, body),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['admin'] });
+    },
+  });
+  const defaultRole = roles.data?.[0]?.id ?? '';
+
+  return (
+    <AdminShell
+      title="Enterprise users"
+      description="Invite, govern, review, and secure users across roles, departments, sessions, teams, and organisation access."
+    >
+      <div className="grid gap-4 md:grid-cols-4">
+        <StatCard
+          icon={UsersRound}
+          label="Known users"
+          value={currentUser ? 1 : 0}
+          hint="Current tenant-visible users."
+        />
+        <StatCard
+          icon={MailPlus}
+          label="Invitations"
+          value={invite.isSuccess ? 1 : 0}
+          hint="Invitations sent this session."
+        />
+        <StatCard
+          icon={LogOut}
+          label="Active sessions"
+          value="Live"
+          hint="Session management architecture connected."
+        />
+        <StatCard
+          icon={Shield}
+          label="Sensitive controls"
+          value="Protected"
+          hint="Billing, secrets, audit, and security remain guarded."
+        />
+      </div>
+
+      <section className="premium-card premium-hero p-5">
+        <h2 className="font-semibold">Invite user</h2>
+        <form
+          className="mt-4 grid gap-3 lg:grid-cols-[1fr_260px_auto]"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const form = new FormData(event.currentTarget);
+            const email = formString(form, 'email').trim();
+            const roleId = formString(form, 'roleId') || defaultRole;
+            if (email && roleId) invite.mutate({ email, roleId });
+          }}
+        >
+          <input
+            name="email"
+            type="email"
+            required
+            placeholder="teammate@company.com"
+            className="premium-input"
+          />
+          <select name="roleId" required className="premium-input" defaultValue={defaultRole}>
+            {roles.data?.map((role) => (
+              <option key={role.id} value={role.id}>
+                {role.name}
+              </option>
+            ))}
+          </select>
+          <Button type="submit" disabled={invite.isPending || !defaultRole}>
+            {invite.isPending ? 'Sending...' : 'Send invite'}
+          </Button>
+        </form>
+        {invite.error && <p className="mt-3 text-sm text-destructive">{invite.error.message}</p>}
+        {invite.isSuccess && (
+          <p className="mt-3 text-sm text-muted-foreground">
+            Invitation created. Email delivery can be connected through the communications provider.
+          </p>
+        )}
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <section className="premium-card p-5">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">User directory</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Current user profile plus enterprise management controls.
+              </p>
+            </div>
+            <label className="premium-input flex items-center gap-2">
+              <Search className="size-4 text-muted-foreground" />
+              <input placeholder="Search users" className="bg-transparent outline-none" />
+            </label>
+          </div>
+          <article className="premium-list-link mt-4 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="grid size-11 place-items-center rounded-md bg-foreground text-sm font-semibold text-background">
+                  {(currentUser?.name ?? currentUser?.email ?? 'U').slice(0, 2).toUpperCase()}
+                </span>
+                <div>
+                  <p className="font-medium">{currentUser?.name ?? 'Current user'}</p>
+                  <p className="text-sm text-muted-foreground">{currentUser?.email}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {currentOrganisation?.name} · Owner candidate · Active
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {['View activity', 'Assign role', 'Force logout', 'Reset password'].map(
+                  (action) => (
+                    <Button key={action} variant="outline" size="sm">
+                      {action}
+                    </Button>
+                  ),
+                )}
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <aside className="grid content-start gap-4">
+          {[
+            {
+              label: 'Suspend user',
+              Icon: UserX,
+              detail: 'Requires owner approval and audit event.',
+            },
+            {
+              label: 'Transfer ownership',
+              Icon: KeyRound,
+              detail: 'Multi-step confirmation before ownership changes.',
+            },
+            {
+              label: 'Bulk invite CSV',
+              Icon: MailPlus,
+              detail: 'CSV upload UI prepared for invite batches.',
+            },
+          ].map(({ label, Icon, detail }) => (
+            <section key={String(label)} className="premium-card p-4">
+              <div className="flex items-center gap-2">
+                <Icon className="size-4" />
+                <h3 className="font-semibold">{label}</h3>
+              </div>
+              <p className="mt-2 text-sm text-muted-foreground">{detail}</p>
+            </section>
+          ))}
+        </aside>
+      </div>
+    </AdminShell>
+  );
+}
+
 export function AdminRolesPage() {
   const roles = useEnterpriseResource('roles');
+  const token = useAuthStore((state) => state.accessToken);
+  const { currentOrganisation } = useWorkspace();
+  const queryClient = useQueryClient();
+  const createRole = useMutation({
+    mutationFn: (template: (typeof roleTemplates)[number]) =>
+      enterpriseApi.createRole(token!, currentOrganisation!.id, {
+        name: `${template.name} ${Date.now().toString().slice(-4)}`,
+        permissions: [...template.permissions],
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin'] }),
+  });
+
   return (
     <AdminShell
       title="Role management"
       description="Custom roles, inheritance, temporary access, approval-based permissions, and delegated administration."
     >
-      <Records title="Custom roles" records={rows(roles.data)} empty="No custom roles yet." />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {roleTemplates.map((template) => (
+          <section key={template.name} className="premium-card p-5">
+            <h2 className="font-semibold">{template.name}</h2>
+            <p className="mt-2 min-h-12 text-sm leading-6 text-muted-foreground">
+              {template.description}
+            </p>
+            <p className="mt-3 text-xs text-muted-foreground">
+              {template.permissions.length} permissions
+            </p>
+            <Button
+              className="mt-4 w-full"
+              variant="outline"
+              onClick={() => createRole.mutate(template)}
+            >
+              Clone template
+            </Button>
+          </section>
+        ))}
+      </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Permission matrix</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Module-based permissions with view, create, edit, delete, approve, export, import,
+              assign, and manage actions.
+            </p>
+          </div>
+          <label className="premium-input flex items-center gap-2">
+            <Search className="size-4 text-muted-foreground" />
+            <input placeholder="Search permissions" className="bg-transparent outline-none" />
+          </label>
+        </div>
+        <div className="mt-5 overflow-x-auto">
+          <table className="w-full min-w-[760px] text-sm">
+            <thead className="text-xs uppercase tracking-wide text-muted-foreground">
+              <tr>
+                <th className="py-2 text-left">Module</th>
+                {permissionActions.map((action) => (
+                  <th key={action} className="px-2 py-2 text-center">
+                    {action}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {permissionModules.map((module) => (
+                <tr key={module} className="border-t">
+                  <td className="py-3 font-medium">{module}</td>
+                  {permissionActions.map((action) => (
+                    <td key={action} className="px-2 py-3 text-center">
+                      <span className="inline-flex size-5 items-center justify-center rounded border bg-secondary text-[10px]">
+                        ✓
+                      </span>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <Records
+        title="Custom roles"
+        records={rows(roles.data)}
+        empty="No custom roles yet. Clone a template above to create one."
+      />
     </AdminShell>
   );
 }

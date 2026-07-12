@@ -1,5 +1,6 @@
 import {
   AreaChart,
+  Bell,
   Bot,
   BriefcaseBusiness,
   CalendarDays,
@@ -9,6 +10,7 @@ import {
   Gauge,
   PlugZap,
   MessageSquareText,
+  LifeBuoy,
   Settings,
   ShieldCheck,
   Sparkles,
@@ -41,6 +43,14 @@ export const workspaceNavigation: NavigationItem[] = [
     route: '/app/today',
     icon: CalendarDays,
     keywords: ['today', 'focus', 'agenda', 'next actions'],
+  },
+  {
+    title: 'Notifications',
+    route: '/app/notifications',
+    icon: Bell,
+    permission: 'notifications.read',
+    featureFlag: 'notifications',
+    keywords: ['alerts', 'inbox', 'mentions', 'system updates'],
   },
   {
     title: 'CRM',
@@ -161,6 +171,12 @@ export const workspaceNavigation: NavigationItem[] = [
     permission: 'settings.read',
     keywords: ['workspace', 'preferences', 'account'],
   },
+  {
+    title: 'Support',
+    route: '/contact',
+    icon: LifeBuoy,
+    keywords: ['help', 'support', 'contact', 'questions'],
+  },
 ];
 
 export const quickActions: NavigationItem[] = [
@@ -205,6 +221,42 @@ export const quickActions: NavigationItem[] = [
     route: '/app/settings',
     icon: Settings,
     keywords: ['preferences', 'organisation', 'account'],
+  },
+  {
+    title: 'Invite user',
+    route: '/app/admin/users',
+    icon: UsersRound,
+    keywords: ['invite sarah johnson', 'invite teammate', 'add user', 'team member'],
+  },
+  {
+    title: 'Open Finance Dashboard',
+    route: '/app/finance',
+    icon: CircleDollarSign,
+    keywords: ['finance dashboard', 'open finance dashboard', 'billing', 'revenue'],
+  },
+  {
+    title: 'Generate invoice',
+    route: '/app/invoices',
+    icon: CircleDollarSign,
+    keywords: ['generate invoice', 'create invoice', 'invoice customer'],
+  },
+  {
+    title: 'Summarise meeting',
+    route: '/app/meetings',
+    icon: MessageSquareText,
+    keywords: ['summarise meeting', 'meeting summary', 'meeting notes'],
+  },
+  {
+    title: 'Search overdue invoices',
+    route: '/app/finance',
+    icon: Sparkles,
+    keywords: ['overdue invoices', 'search overdue invoices', 'unpaid invoices'],
+  },
+  {
+    title: 'Switch organisation',
+    route: '/app/settings',
+    icon: Sparkles,
+    keywords: ['switch organisation', 'change workspace', 'workspace switcher'],
   },
 ];
 

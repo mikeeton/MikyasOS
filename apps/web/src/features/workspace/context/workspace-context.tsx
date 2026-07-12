@@ -81,6 +81,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
       permissions: ['workspace.read'],
       featureFlags: {
         crm: false,
+        notifications: true,
         projects: true,
         tasks: true,
         documents: false,

@@ -3,6 +3,13 @@
 Milestone 3 turns the authenticated app into the permanent mikyasOS workspace frame.
 It does not add CRM, Projects, Finance, AI chat, or other business modules.
 
+All workspace work should follow the internal product standards in
+[`docs/product-dna.md`](./product-dna.md) and
+[`docs/design-language.md`](./design-language.md), and
+[`docs/ux-information-architecture.md`](./ux-information-architecture.md). The shell
+should make mikyasOS feel like one business operating system, not a set of disconnected
+apps.
+
 ## Layout
 
 Authenticated routes under `/app` render through `WorkspaceShell`.

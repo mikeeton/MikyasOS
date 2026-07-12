@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   Clock3,
   CreditCard,
+  FileText,
   HeartPulse,
   Plus,
   Settings,
@@ -13,6 +14,7 @@ import {
   Sparkles,
   Star,
   Target,
+  UsersRound,
 } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
@@ -26,11 +28,50 @@ import {
 import { useBillingOverview } from '@/features/launch/hooks/use-billing';
 import { workspaceNavigation } from '@/features/workspace/config/navigation';
 import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
+import { cn } from '@/lib/utils';
 
 const operationalTimeline = [
   ['/app/customer-onboarding', 'Today', 'Finish customer onboarding setup'],
   ['/app/admin', 'This week', 'Review enterprise administration and security'],
   ['/app/billing/checklist', 'Next', 'Complete the production launch checklist'],
+] as const;
+
+const operatingPillars = [
+  {
+    label: 'People',
+    detail: 'Customers, team members, roles, sessions, and relationships.',
+    route: '/app/crm',
+    icon: UsersRound,
+    accent: 'module-accent-crm',
+  },
+  {
+    label: 'Work',
+    detail: 'Projects, tasks, meetings, approvals, and delivery signals.',
+    route: '/app/today',
+    icon: Target,
+    accent: 'module-accent-projects',
+  },
+  {
+    label: 'Knowledge',
+    detail: 'Documents, notes, activity, memory, and business context.',
+    route: '/app/documents',
+    icon: FileText,
+    accent: 'module-accent-documents',
+  },
+  {
+    label: 'Money',
+    detail: 'Invoices, revenue, subscriptions, expenses, and forecasts.',
+    route: '/app/finance',
+    icon: CreditCard,
+    accent: 'module-accent-finance',
+  },
+  {
+    label: 'Intelligence',
+    detail: 'AI briefings, recommendations, automation, and analytics.',
+    route: '/app/ai',
+    icon: Bot,
+    accent: 'module-accent-ai',
+  },
 ] as const;
 
 export function AppHomePage() {
@@ -194,7 +235,7 @@ export function AppHomePage() {
                   <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
                     {signal.label}
                   </p>
-                  <p className="mt-3 text-2xl font-semibold tracking-tight">{signal.value}</p>
+                  <p className="premium-number mt-3 text-2xl font-semibold">{signal.value}</p>
                 </div>
                 <span className="grid size-9 place-items-center rounded-md border border-border bg-background/70">
                   <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -211,6 +252,39 @@ export function AppHomePage() {
           );
         })}
       </div>
+
+      <section className="premium-section p-5">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h3 className="font-semibold">The business operating layer</h3>
+            <p className="text-sm text-muted-foreground">
+              mikyasOS keeps people, work, knowledge, money, and intelligence connected in one
+              workspace.
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/app/today">Open command centre</Link>
+          </Button>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
+          {operatingPillars.map((pillar) => {
+            const Icon = pillar.icon;
+            return (
+              <Link
+                key={pillar.label}
+                to={pillar.route}
+                className={cn('premium-design-card block', pillar.accent)}
+              >
+                <span className="module-accent-mark grid size-9 place-items-center rounded-md border">
+                  <Icon className="size-4" aria-hidden="true" />
+                </span>
+                <p className="mt-4 text-sm font-semibold">{pillar.label}</p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">{pillar.detail}</p>
+              </Link>
+            );
+          })}
+        </div>
+      </section>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
         <section className="premium-section p-5">

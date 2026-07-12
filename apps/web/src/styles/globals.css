@@ -30,6 +30,16 @@
     --info-foreground: 0 0% 98%;
     --surface-raised: 0 0% 100%;
     --surface-subtle: 240 4.8% 97.6%;
+    --module-ai: 263 85% 58%;
+    --module-automation: 190 90% 42%;
+    --module-finance: 38 92% 50%;
+    --module-crm: 217 91% 60%;
+    --module-analytics: 199 89% 48%;
+    --module-documents: 158 64% 40%;
+    --module-projects: 252 84% 62%;
+    --module-calendar: 221 83% 53%;
+    --module-notifications: 346 77% 50%;
+    --module-admin: 240 6% 30%;
   }
 
   .dark {
@@ -58,6 +68,16 @@
     --info-foreground: 240 10% 3.9%;
     --surface-raised: 240 5% 8%;
     --surface-subtle: 240 4% 11%;
+    --module-ai: 263 90% 72%;
+    --module-automation: 190 92% 58%;
+    --module-finance: 38 92% 62%;
+    --module-crm: 217 91% 70%;
+    --module-analytics: 199 89% 62%;
+    --module-documents: 158 72% 52%;
+    --module-projects: 252 90% 74%;
+    --module-calendar: 221 90% 70%;
+    --module-notifications: 346 84% 64%;
+    --module-admin: 240 5% 72%;
   }
 
   * {
@@ -251,6 +271,74 @@
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.07) inset,
       0 20px 70px hsl(240 10% 3.9% / 0.1);
+  }
+
+  .premium-design-card {
+    @apply premium-interactive rounded-md border border-border/80 p-4;
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.88), hsl(var(--background) / 0.68)),
+      hsl(var(--background));
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.05) inset,
+      0 18px 58px hsl(240 10% 3.9% / 0.07);
+  }
+
+  .premium-design-card:hover {
+    border-color: hsl(var(--module-accent, var(--primary)) / 0.34);
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.06) inset,
+      0 22px 72px hsl(var(--module-accent, var(--primary)) / 0.12);
+  }
+
+  .module-accent-ai {
+    --module-accent: var(--module-ai);
+  }
+
+  .module-accent-automation {
+    --module-accent: var(--module-automation);
+  }
+
+  .module-accent-finance {
+    --module-accent: var(--module-finance);
+  }
+
+  .module-accent-crm {
+    --module-accent: var(--module-crm);
+  }
+
+  .module-accent-analytics {
+    --module-accent: var(--module-analytics);
+  }
+
+  .module-accent-documents {
+    --module-accent: var(--module-documents);
+  }
+
+  .module-accent-projects {
+    --module-accent: var(--module-projects);
+  }
+
+  .module-accent-calendar {
+    --module-accent: var(--module-calendar);
+  }
+
+  .module-accent-notifications {
+    --module-accent: var(--module-notifications);
+  }
+
+  .module-accent-admin {
+    --module-accent: var(--module-admin);
+  }
+
+  .module-accent-mark {
+    color: hsl(var(--module-accent, var(--primary)));
+    background: hsl(var(--module-accent, var(--primary)) / 0.1);
+    border-color: hsl(var(--module-accent, var(--primary)) / 0.22);
+  }
+
+  .premium-number {
+    @apply tabular-nums tracking-tight;
+    font-variant-numeric: tabular-nums;
   }
 
   .premium-list-link {

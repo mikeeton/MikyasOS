@@ -19,6 +19,12 @@ export type WorkspaceNotification = {
   timestamp: string;
   unread: boolean;
   route?: string;
+  sourceModule?: string;
+  priority?: 'critical' | 'high' | 'medium' | 'low';
+  status?: 'unread' | 'read' | 'archived' | 'deleted';
+  relatedUser?: string;
+  organisationName?: string;
+  type?: string;
 };
 
 export type WorkspaceContextValue = {

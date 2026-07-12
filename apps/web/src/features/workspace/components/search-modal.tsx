@@ -48,6 +48,9 @@ const quickSearches = [
   { label: 'Documents', query: 'document', href: '/app/documents/search', icon: FileText },
   { label: 'Invoices', query: 'invoice', href: '/app/invoices', icon: Receipt },
   { label: 'AI memory', query: 'memory', href: '/app/ai/memory', icon: Bot },
+  { label: 'Overdue work', query: 'overdue', href: '/app/today', icon: Target },
+  { label: 'Revenue', query: 'revenue', href: '/app/analytics', icon: CreditCard },
+  { label: 'Meetings', query: 'meeting', href: '/app/meetings', icon: BriefcaseBusiness },
 ];
 
 export function SearchModal({
@@ -225,7 +228,8 @@ export function SearchModal({
                       <p className="text-sm font-medium">Search the whole operating system</p>
                       <p className="mt-1 max-w-xl text-sm text-muted-foreground">
                         Find CRM records, work, knowledge, finance records, and AI memory from one
-                        place.
+                        place. Use natural phrases like "projects due next week" or "customers in
+                        London".
                       </p>
                     </div>
                     <span className="status-pill status-pill-success w-fit">Live search</span>

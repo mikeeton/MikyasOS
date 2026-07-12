@@ -44,6 +44,17 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
     );
   }, [query]);
 
+  const suggestedCommands = [
+    'Create project Website Redesign',
+    'Invite Sarah Johnson',
+    'Open Finance Dashboard',
+    'Find Acme Corporation',
+    'Generate invoice',
+    'Summarise meeting',
+    'Search overdue invoices',
+    'Switch organisation',
+  ];
+
   const runCommand = (route: string, disabled?: boolean) => {
     if (disabled) {
       return;
@@ -87,7 +98,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 autoFocus
-                placeholder="Search pages, actions, and navigation..."
+                placeholder="Search, navigate, or type a command..."
                 className="h-9 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
               />
               <kbd className="rounded border border-border bg-muted px-2 py-1 text-xs text-muted-foreground">
@@ -98,7 +109,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               <div className="mb-2 rounded-md border border-border/70 bg-background/50 px-3 py-2">
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <Zap className="size-3.5" aria-hidden="true" />
-                  Type a module, action, or route. Keyboard-first workflows stay under one command.
+                  Type naturally: create, invite, find, generate, summarise, search, or switch.
                 </div>
               </div>
               <motion.div variants={cascadeContainer} initial="initial" animate="animate">
@@ -136,14 +147,28 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                     })
                   ) : (
                     <div className="rounded-md border border-dashed border-border px-3 py-5 text-sm text-muted-foreground">
-                      No command matches "{query}". Try a module name like CRM, Projects, AI, or
-                      Billing.
+                      No command matches "{query}". Try a business phrase like "create project",
+                      "invite user", "finance dashboard", or "overdue invoices".
                     </div>
                   )}
                 </CommandSection>
               </motion.div>
               {!query && (
                 <>
+                  <CommandSection title="Try natural language" icon={Zap}>
+                    <div className="flex flex-wrap gap-2 px-3 pb-1">
+                      {suggestedCommands.map((command) => (
+                        <button
+                          key={command}
+                          type="button"
+                          className="rounded-full border px-3 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                          onClick={() => setQuery(command)}
+                        >
+                          {command}
+                        </button>
+                      ))}
+                    </div>
+                  </CommandSection>
                   <CommandSection title="Recent pages" icon={Clock}>
                     {recentPages.map((item) => {
                       const Icon = item.icon;
@@ -160,9 +185,11 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                       );
                     })}
                   </CommandSection>
-                  <CommandSection title="AI placeholder" icon={Bot}>
-                    <div className="rounded-md border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
-                      AI command routing will connect after business modules exist.
+                  <CommandSection title="Intelligent shortcuts" icon={Bot}>
+                    <div className="rounded-md border border-border/70 bg-background/60 px-3 py-4 text-sm text-muted-foreground">
+                      Use commands to move from intent to action: open Today for next actions,
+                      search finance for overdue invoices, or open AI for grounded workspace
+                      answers.
                     </div>
                   </CommandSection>
                 </>

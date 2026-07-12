@@ -11,15 +11,17 @@ import {
   ShieldCheck,
   Sparkles,
   Workflow,
+  Archive,
+  Pin,
+  Trash2,
 } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
-import { useTodayCommandCentre } from '@/features/today/use-today-command-centre';
+import { useNotificationCentre } from '@/features/notifications/use-notification-centre';
 import { cn } from '@/lib/utils';
 
-import { useWorkspace } from '../hooks/use-workspace';
 import { premiumSpring } from '../motion/premium-motion';
 
 const groupStyles = {
@@ -71,10 +73,11 @@ function getGroupStyle(group: string) {
 
 export function NotificationCentre() {
   const [open, setOpen] = useState(false);
-  const { notifications, markAllNotificationsRead } = useWorkspace();
-  const today = useTodayCommandCentre();
-  const liveNotifications = today.notifications.length > 0 ? today.notifications : notifications;
-  const liveUnreadCount = liveNotifications.filter((notification) => notification.unread).length;
+  const notificationCentre = useNotificationCentre();
+  const liveNotifications = notificationCentre.notifications.filter(
+    (notification) => notification.status !== 'deleted' && notification.status !== 'archived',
+  );
+  const liveUnreadCount = notificationCentre.unreadCount;
 
   const groupedNotifications = useMemo(
     () =>
@@ -134,7 +137,7 @@ export function NotificationCentre() {
                     </p>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm" onClick={markAllNotificationsRead}>
+                <Button variant="ghost" size="sm" onClick={notificationCentre.markAllRead}>
                   <CheckCheck className="mr-2 size-4" aria-hidden="true" />
                   Mark read
                 </Button>
@@ -203,7 +206,7 @@ export function NotificationCentre() {
                       </span>
                     </div>
                     <div className="grid gap-2 pb-2">
-                      {items.map((notification) => (
+                      {items.slice(0, 5).map((notification) => (
                         <motion.article
                           key={notification.id}
                           layout
@@ -250,6 +253,9 @@ export function NotificationCentre() {
                                 <span className="rounded-full bg-secondary px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
                                   {notification.timestamp}
                                 </span>
+                                <span className="rounded-full border bg-background/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-muted-foreground">
+                                  {notification.priority ?? 'medium'}
+                                </span>
                                 {notification.unread && (
                                   <span className="status-pill status-pill-info px-2 py-0.5 text-[10px]">
                                     Open
@@ -258,12 +264,52 @@ export function NotificationCentre() {
                               </div>
                             </div>
                           </Link>
+                          <div className="flex border-t bg-background/50 px-3 py-2">
+                            <button
+                              type="button"
+                              className="premium-focus rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                              onClick={() => notificationCentre.markRead(notification.id)}
+                            >
+                              Read
+                            </button>
+                            <button
+                              type="button"
+                              className="premium-focus rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                              onClick={() => notificationCentre.togglePin(notification.id)}
+                            >
+                              <Pin className="mr-1 inline size-3" />
+                              Pin
+                            </button>
+                            <button
+                              type="button"
+                              className="premium-focus rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground"
+                              onClick={() => notificationCentre.archive(notification.id)}
+                            >
+                              <Archive className="mr-1 inline size-3" />
+                              Archive
+                            </button>
+                            <button
+                              type="button"
+                              className="premium-focus ml-auto rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                              onClick={() => notificationCentre.deleteNotification(notification.id)}
+                            >
+                              <Trash2 className="mr-1 inline size-3" />
+                              Delete
+                            </button>
+                          </div>
                         </motion.article>
                       ))}
                     </div>
                   </section>
                 ))
               )}
+            </div>
+            <div className="border-t p-3">
+              <Button asChild className="w-full" variant="outline" size="sm">
+                <Link to="/app/notifications" onClick={() => setOpen(false)}>
+                  View full notification centre
+                </Link>
+              </Button>
             </div>
           </motion.div>
         )}

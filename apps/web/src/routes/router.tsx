@@ -35,6 +35,12 @@ const TodayCommandCentrePage = lazy(() =>
   })),
 );
 
+const NotificationsPage = lazy(() =>
+  import('@/features/notifications/notifications-page').then((module) => ({
+    default: module.NotificationsPage,
+  })),
+);
+
 const CrmDashboardPage = lazy(() =>
   import('@/features/crm/pages/crm-dashboard-page').then((module) => ({
     default: module.CrmDashboardPage,
@@ -423,6 +429,11 @@ const AdminRolesPage = lazy(() =>
     default: module.AdminRolesPage,
   })),
 );
+const AdminUsersPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminUsersPage,
+  })),
+);
 const AdminPoliciesPage = lazy(() =>
   import('@/features/admin/pages/admin-pages').then((module) => ({
     default: module.AdminPoliciesPage,
@@ -678,6 +689,16 @@ export const router = createBrowserRouter([
         element: <NewOrganisationPage />,
       },
       {
+        path: '/notifications',
+        element: withSuspense(<WorkspaceShell />),
+        children: [
+          {
+            index: true,
+            element: withSuspense(<NotificationsPage />),
+          },
+        ],
+      },
+      {
         path: '/app',
         element: withSuspense(<WorkspaceShell />),
         children: [
@@ -688,6 +709,10 @@ export const router = createBrowserRouter([
           {
             path: 'today',
             element: withSuspense(<TodayCommandCentrePage />),
+          },
+          {
+            path: 'notifications',
+            element: withSuspense(<NotificationsPage />),
           },
           {
             path: 'settings',
@@ -1067,7 +1092,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'admin/users',
-            element: withSuspense(<AdminPlaceholderPage title="Enterprise users" />),
+            element: withSuspense(<AdminUsersPage />),
           },
           {
             path: 'admin/roles',
