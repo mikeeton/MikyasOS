@@ -84,7 +84,6 @@ export const workspaceNavigation: NavigationItem[] = [
     permission: 'calendar.read',
     featureFlag: 'calendar',
     keywords: ['schedule', 'events', 'meetings'],
-    disabled: true,
   },
   {
     title: 'Finance',

@@ -23,6 +23,12 @@ const WorkspaceSettingsPage = lazy(() =>
   })),
 );
 
+const CalendarPage = lazy(() =>
+  import('@/features/calendar/calendar-page').then((module) => ({
+    default: module.CalendarPage,
+  })),
+);
+
 const CrmDashboardPage = lazy(() =>
   import('@/features/crm/pages/crm-dashboard-page').then((module) => ({
     default: module.CrmDashboardPage,
@@ -824,6 +830,10 @@ export const router = createBrowserRouter([
           {
             path: 'tasks/:id',
             element: withSuspense(<TaskDetailPage />),
+          },
+          {
+            path: 'calendar',
+            element: withSuspense(<CalendarPage />),
           },
           {
             path: 'documents',

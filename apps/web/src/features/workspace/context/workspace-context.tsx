@@ -85,7 +85,7 @@ export function WorkspaceProvider({ children }: { children: ReactNode }) {
         tasks: true,
         documents: false,
         communication: true,
-        calendar: false,
+        calendar: true,
         finance: true,
         analytics: true,
         integrations: true,
