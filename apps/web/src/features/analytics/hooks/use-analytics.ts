@@ -144,3 +144,16 @@ export function useCreateAnalyticsSnapshot() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: analyticsKeys.all }),
   });
 }
+
+export function useTrackProductEvent() {
+  const { token, organisationId } = useAnalyticsContext();
+  return useMutation({
+    mutationFn: (body: {
+      name: string;
+      source?: string;
+      entityType?: string;
+      entityId?: string;
+      metadata?: Record<string, unknown>;
+    }) => analyticsApi.trackEvent(token!, organisationId!, body),
+  });
+}

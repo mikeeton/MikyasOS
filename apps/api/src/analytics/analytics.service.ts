@@ -22,6 +22,7 @@ import type {
   CreateSnapshotDto,
   CreateWidgetDto,
   ListAnalyticsDto,
+  TrackProductEventDto,
 } from './dto/analytics.dto';
 
 type AnalyticsDelegate =
@@ -147,6 +148,23 @@ export class AnalyticsService {
         note: 'Executive briefing architecture is ready without LLM generation.',
       },
     };
+  }
+
+  async trackProductEvent(organisationId: string, actorUserId: string, dto: TrackProductEventDto) {
+    return this.prisma.analyticsEvent.create({
+      data: {
+        organisationId,
+        actorUserId,
+        type: AnalyticsEventType.FILTER_APPLIED,
+        entityType: dto.entityType ?? 'product_event',
+        entityId: dto.entityId,
+        metadata: {
+          name: dto.name,
+          source: dto.source ?? 'web',
+          ...(dto.metadata ?? {}),
+        },
+      },
+    });
   }
 
   async list(delegate: AnalyticsDelegate, organisationId: string, query: ListAnalyticsDto) {

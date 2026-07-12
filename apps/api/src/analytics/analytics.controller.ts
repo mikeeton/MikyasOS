@@ -27,6 +27,7 @@ import {
   CreateSnapshotDto,
   CreateWidgetDto,
   ListAnalyticsDto,
+  TrackProductEventDto,
 } from './dto/analytics.dto';
 
 @Controller({ path: 'analytics', version: '1' })
@@ -62,6 +63,16 @@ export class AnalyticsController {
   @RequirePermissions('Analytics.Read')
   executive(@CurrentOrganisation() organisationId: string) {
     return this.analytics.executiveDashboard(organisationId);
+  }
+
+  @Post('events')
+  @RequirePermissions('Analytics.Read')
+  trackEvent(
+    @CurrentOrganisation() organisationId: string,
+    @CurrentUser() user: AuthenticatedUser,
+    @Body() dto: TrackProductEventDto,
+  ) {
+    return this.analytics.trackProductEvent(organisationId, user.id, dto);
   }
 
   @Get('dashboards')

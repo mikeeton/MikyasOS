@@ -1753,11 +1753,39 @@ export type AnalyticsRecord = {
   createdAt: string;
 };
 
+export type ProductAnalyticsEvent = {
+  id: string;
+  organisationId: string;
+  actorUserId?: string | null;
+  type: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  metadata?: Record<string, unknown> | null;
+  createdAt: string;
+};
+
 export const analyticsApi = {
   capabilities: (token: string, organisationId: string) =>
     apiRequest<AnalyticsCapabilities>('/analytics/capabilities', { token, organisationId }),
   executive: (token: string, organisationId: string) =>
     apiRequest<AnalyticsExecutiveDashboard>('/analytics/executive', { token, organisationId }),
+  trackEvent: (
+    token: string,
+    organisationId: string,
+    body: {
+      name: string;
+      source?: string;
+      entityType?: string;
+      entityId?: string;
+      metadata?: Record<string, unknown>;
+    },
+  ) =>
+    apiRequest<ProductAnalyticsEvent>('/analytics/events', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
   dashboards: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
     apiRequest<PaginatedResult<AnalyticsDashboard>>(
       `/analytics/dashboards${toQueryString(query)}`,

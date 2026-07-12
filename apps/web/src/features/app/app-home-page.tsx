@@ -14,42 +14,18 @@ import {
   Star,
   Target,
 } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
+import { useEnterpriseDashboard, usePlatformOverview } from '@/features/admin/hooks/use-admin';
+import {
+  useExecutiveAnalytics,
+  useTrackProductEvent,
+} from '@/features/analytics/hooks/use-analytics';
+import { useBillingOverview } from '@/features/launch/hooks/use-billing';
 import { workspaceNavigation } from '@/features/workspace/config/navigation';
 import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
-
-const businessSignals = [
-  {
-    label: 'Platform health',
-    value: 'Check',
-    detail: 'API, database, Redis, queues, and providers',
-    route: '/app/admin/platform/health',
-    icon: HeartPulse,
-  },
-  {
-    label: 'Billing',
-    value: 'Manage',
-    detail: 'Plans, subscriptions, usage, and checkout',
-    route: '/app/billing',
-    icon: CreditCard,
-  },
-  {
-    label: 'Security',
-    value: 'Review',
-    detail: 'Audit, roles, policies, and compliance controls',
-    route: '/app/admin/security',
-    icon: ShieldCheck,
-  },
-  {
-    label: 'AI workspace',
-    value: 'Open',
-    detail: 'Memory, prompts, orchestration, and settings',
-    route: '/app/ai',
-    icon: Sparkles,
-  },
-];
 
 const operationalTimeline = [
   ['/app/customer-onboarding', 'Today', 'Finish customer onboarding setup'],
@@ -59,17 +35,71 @@ const operationalTimeline = [
 
 export function AppHomePage() {
   const { currentUser, currentOrganisation, notifications } = useWorkspace();
+  const analytics = useExecutiveAnalytics();
+  const platform = usePlatformOverview();
+  const billing = useBillingOverview();
+  const enterprise = useEnterpriseDashboard();
+  const trackEvent = useTrackProductEvent();
+  const trackedOrganisationRef = useRef<string | null>(null);
   const pinnedApps = workspaceNavigation.slice(0, 6);
+  const hasDashboardError =
+    analytics.isError || platform.isError || billing.isError || enterprise.isError;
+  const isDashboardLoading =
+    analytics.isLoading || platform.isLoading || billing.isLoading || enterprise.isLoading;
+
+  const businessSignals = [
+    {
+      label: 'Health score',
+      value: analytics.data ? `${analytics.data.companyHealthScore}/100` : 'Loading',
+      detail: analytics.data
+        ? `${analytics.data.projectsAtRisk} projects at risk, ${analytics.data.activity.tasks} tasks open`
+        : 'Reading executive analytics',
+      route: '/app/analytics',
+      icon: HeartPulse,
+    },
+    {
+      label: 'Revenue',
+      value: analytics.data ? formatMoney(analytics.data.revenue) : 'Loading',
+      detail: analytics.data
+        ? `${formatMoney(analytics.data.outstandingInvoices)} outstanding invoices`
+        : 'Reading finance signals',
+      route: '/app/finance',
+      icon: CreditCard,
+    },
+    {
+      label: 'Platform',
+      value: platform.data?.status ?? 'Loading',
+      detail: platform.data
+        ? `${platform.data.activeIncidents} incidents, ${platform.data.failedJobs} failed jobs`
+        : 'Checking operational health',
+      route: '/app/admin/platform/health',
+      icon: ShieldCheck,
+    },
+    {
+      label: 'Plan',
+      value: billing.data?.plan.name ?? 'Loading',
+      detail: billing.data
+        ? `${billing.data.usage.length} tracked usage metrics, ${billing.data.invoices.length} invoices`
+        : 'Reading subscription state',
+      route: '/app/billing',
+      icon: Sparkles,
+    },
+  ];
+
   const priorityItems = [
     {
       title: 'Review launch readiness',
-      detail: 'Billing, onboarding, and admin surfaces are ready for a final customer pass.',
+      detail: billing.data?.onboarding?.status
+        ? `Customer onboarding is ${billing.data.onboarding.status.toLowerCase()}. Review checklist.`
+        : 'Review billing, onboarding, and admin surfaces before inviting customers.',
       route: '/app/billing/checklist',
       icon: CheckCircle2,
     },
     {
       title: 'Check platform health',
-      detail: 'Confirm API, database, Redis, queues, and provider status before demos.',
+      detail: platform.data
+        ? `${platform.data.status}: ${platform.data.latencyMs}ms latency, ${platform.data.errorRate}% error rate.`
+        : 'Confirm API, database, Redis, queues, and provider status before demos.',
       route: '/app/admin/platform/health',
       icon: HeartPulse,
     },
@@ -80,6 +110,19 @@ export function AppHomePage() {
       icon: Bot,
     },
   ];
+
+  useEffect(() => {
+    if (!currentOrganisation?.id || trackedOrganisationRef.current === currentOrganisation.id) {
+      return;
+    }
+
+    trackedOrganisationRef.current = currentOrganisation.id;
+    trackEvent.mutate({
+      name: 'dashboard_viewed',
+      source: 'workspace_home',
+      metadata: { route: '/app' },
+    });
+  }, [currentOrganisation?.id, trackEvent]);
 
   return (
     <section className="grid gap-6">
@@ -114,6 +157,28 @@ export function AppHomePage() {
           </div>
         </div>
       </div>
+
+      {hasDashboardError && (
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm">
+          <p className="font-medium">Some live dashboard data could not load.</p>
+          <p className="mt-1 text-muted-foreground">
+            Static navigation is still available. Retry by refreshing, or open Platform Health for
+            diagnostics.
+          </p>
+        </div>
+      )}
+
+      {isDashboardLoading && (
+        <div className="grid gap-3 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, index) => (
+            <div key={index} className="premium-section p-4">
+              <div className="premium-shimmer h-3 w-24 rounded-full" />
+              <div className="premium-shimmer mt-4 h-7 w-20 rounded-full" />
+              <div className="premium-shimmer mt-4 h-3 w-full rounded-full" />
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {businessSignals.map((signal) => {
@@ -198,12 +263,20 @@ export function AppHomePage() {
           </div>
           <div className="mt-4 rounded-md border border-border/80 bg-background/70 p-4">
             <p className="text-sm leading-6">
-              Core systems are available. Prioritise launch verification, platform health, and
-              customer onboarding before adding more product surface area.
+              {analytics.data?.aiExecutiveBriefing.note ??
+                'Core systems are available. Prioritise launch verification, platform health, and customer onboarding before adding more product surface area.'}
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <span className="status-pill status-pill-info">Grounded context</span>
-              <span className="status-pill status-pill-success">No blocked modules</span>
+              <span className="status-pill status-pill-info">
+                {analytics.data
+                  ? `${analytics.data.activity.documents} documents`
+                  : 'Grounded context'}
+              </span>
+              <span className="status-pill status-pill-success">
+                {analytics.data
+                  ? `${analytics.data.activity.workflows} workflows`
+                  : 'No blocked modules'}
+              </span>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild size="sm">
@@ -265,12 +338,24 @@ export function AppHomePage() {
             <HeartPulse className="size-4 text-muted-foreground" aria-hidden="true" />
           </div>
           <div className="mt-4 grid gap-3">
-            <HealthRow label="Identity" value="Ready" route="/app/admin/users" />
+            <HealthRow
+              label="Identity"
+              value={enterprise.data ? `${enterprise.data.activeSessions} sessions` : 'Ready'}
+              route="/app/admin/users"
+            />
             <HealthRow label="Navigation" value="Ready" route="/app/settings" />
-            <HealthRow label="Business modules" value="Loaded" route="/app/analytics" />
+            <HealthRow
+              label="Business modules"
+              value={
+                analytics.data
+                  ? `${analytics.data.activity.projects + analytics.data.activity.documents} records`
+                  : 'Loaded'
+              }
+              route="/app/analytics"
+            />
             <HealthRow
               label="Production polish"
-              value="Review"
+              value={platform.data?.backupStatus ?? 'Review'}
               route="/app/billing/checklist"
               muted
             />
@@ -362,6 +447,14 @@ export function AppHomePage() {
       </section>
     </section>
   );
+}
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 function HealthRow({

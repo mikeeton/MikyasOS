@@ -206,12 +206,50 @@ export function AiWorkspacePage() {
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 {orchestrate.data.response.answer}
               </p>
-              <div className="mt-4 flex flex-wrap gap-2">
-                {orchestrate.data.response.suggestedActions.map((action) => (
-                  <span key={action.key} className="rounded-md border px-2 py-1 text-xs">
-                    {action.label} · confirm first
-                  </span>
-                ))}
+              <div className="mt-4 grid gap-4 lg:grid-cols-2">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Source citations
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {orchestrate.data.response.citations.length ? (
+                      orchestrate.data.response.citations.map((citation) => (
+                        <span key={`${citation.type}-${citation.id}`} className="status-pill">
+                          {citation.type}: {citation.title}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-xs text-muted-foreground">
+                        No matching business records were found, so no citations were attached.
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    Suggested actions
+                  </p>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {orchestrate.data.response.suggestedActions.map((action) => (
+                      <span key={action.key} className="status-pill status-pill-info">
+                        {action.label} · confirm first
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-4 grid gap-2 rounded-md border border-border/70 bg-background/70 p-3 text-xs text-muted-foreground sm:grid-cols-3">
+                <span>
+                  Grounded: {orchestrate.data.response.safety.groundedInBusinessData ? 'yes' : 'no'}
+                </span>
+                <span>
+                  Permissions:{' '}
+                  {orchestrate.data.response.safety.permissionsApplied ? 'applied' : 'missing'}
+                </span>
+                <span>
+                  Destructive blocked:{' '}
+                  {orchestrate.data.response.safety.destructiveActionBlocked ? 'yes' : 'no'}
+                </span>
               </div>
             </div>
           ) : null}

@@ -41,6 +41,30 @@ export class ListAnalyticsDto {
   search?: string;
 }
 
+export class TrackProductEventDto {
+  @IsString()
+  @MaxLength(120)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  source?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  entityType?: string;
+
+  @IsOptional()
+  @IsUUID()
+  entityId?: string;
+
+  @IsOptional()
+  @IsObject()
+  metadata?: Record<string, unknown>;
+}
+
 export class IdParamDto {
   @IsUUID()
   id!: string;
