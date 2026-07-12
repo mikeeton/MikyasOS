@@ -367,6 +367,36 @@ const SnapshotsPage = lazy(() =>
     default: module.SnapshotsPage,
   })),
 );
+const IntegrationsDashboardPage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.IntegrationsDashboardPage,
+  })),
+);
+const IntegrationsMarketplacePage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.IntegrationsMarketplacePage,
+  })),
+);
+const InstalledIntegrationsPage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.InstalledIntegrationsPage,
+  })),
+);
+const IntegrationDetailPage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.IntegrationDetailPage,
+  })),
+);
+const IntegrationLogsPage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.IntegrationLogsPage,
+  })),
+);
+const IntegrationSettingsPage = lazy(() =>
+  import('@/features/integrations/pages/integrations-pages').then((module) => ({
+    default: module.IntegrationSettingsPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -717,6 +747,30 @@ export const router = createBrowserRouter([
           {
             path: 'snapshots',
             element: withSuspense(<SnapshotsPage />),
+          },
+          {
+            path: 'integrations',
+            element: withSuspense(<IntegrationsDashboardPage />),
+          },
+          {
+            path: 'integrations/marketplace',
+            element: withSuspense(<IntegrationsMarketplacePage />),
+          },
+          {
+            path: 'integrations/installed',
+            element: withSuspense(<InstalledIntegrationsPage />),
+          },
+          {
+            path: 'integrations/logs',
+            element: withSuspense(<IntegrationLogsPage />),
+          },
+          {
+            path: 'integrations/settings',
+            element: withSuspense(<IntegrationSettingsPage />),
+          },
+          {
+            path: 'integrations/:id',
+            element: withSuspense(<IntegrationDetailPage />),
           },
         ],
       },

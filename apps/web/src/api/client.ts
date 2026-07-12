@@ -70,6 +70,11 @@ export type FinanceQuery = AutomationQuery & {
 
 export type AnalyticsQuery = AutomationQuery;
 
+export type IntegrationsQuery = AutomationQuery & {
+  category?: string;
+  status?: string;
+};
+
 export type CrmTag = {
   id: string;
   name: string;
@@ -1838,6 +1843,144 @@ export const analyticsApi = {
       token,
       organisationId,
       body: JSON.stringify(body),
+    }),
+};
+
+export type IntegrationConnector = {
+  key: string;
+  name: string;
+  category: string;
+  provider: string;
+  description: string;
+  authTypes: string[];
+  verified: boolean;
+  featured: boolean;
+  actions: string[];
+  installStatus?: string;
+};
+
+export type IntegrationRecord = {
+  id: string;
+  key?: string;
+  name?: string;
+  category?: string;
+  provider?: string;
+  status?: string;
+  mode?: string;
+  entity?: string;
+  severity?: string;
+  message?: string;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+export type IntegrationCapabilities = {
+  modules: string[];
+  supportedIntegrations: IntegrationConnector[];
+  oauth: string[];
+  syncModes: string[];
+  productionConnectorsEnabled: boolean;
+  aiPreparation: Record<string, unknown>;
+};
+
+export type OAuthArchitecture = {
+  provider: string;
+  authorizationUrl: string;
+  callbackUrl: string;
+  pkceRequired: boolean;
+  tokenStorage: string;
+  productionOAuthEnabled: boolean;
+};
+
+export const integrationsApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<IntegrationCapabilities>('/integrations/capabilities', { token, organisationId }),
+  marketplace: (token: string, organisationId: string) =>
+    apiRequest<IntegrationConnector[]>('/integrations/marketplace', { token, organisationId }),
+  installed: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(`/integrations${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  install: (token: string, organisationId: string, connectorKey: string) =>
+    apiRequest<IntegrationRecord>(`/integrations/marketplace/${connectorKey}/install`, {
+      method: 'POST',
+      token,
+      organisationId,
+    }),
+  connections: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(
+      `/integrations/connections${toQueryString(query)}`,
+      { token, organisationId },
+    ),
+  createCredential: (
+    token: string,
+    organisationId: string,
+    body: {
+      integrationId: string;
+      authType: string;
+      label: string;
+      secret: Record<string, unknown>;
+    },
+  ) =>
+    apiRequest<IntegrationRecord>('/integrations/credentials', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  syncs: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(`/integrations/syncs${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  startSync: (
+    token: string,
+    organisationId: string,
+    body: { integrationId: string; mode: string; entity: string; connectionId?: string },
+  ) =>
+    apiRequest<IntegrationRecord>('/integrations/syncs', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  webhooks: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(
+      `/integrations/webhooks${toQueryString(query)}`,
+      { token, organisationId },
+    ),
+  createWebhook: (
+    token: string,
+    organisationId: string,
+    body: {
+      name: string;
+      direction: string;
+      url: string;
+      integrationId?: string;
+      events?: string[];
+    },
+  ) =>
+    apiRequest<IntegrationRecord>('/integrations/webhooks', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  logs: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(`/integrations/logs${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  health: (token: string, organisationId: string, query: IntegrationsQuery = {}) =>
+    apiRequest<PaginatedResult<IntegrationRecord>>(`/integrations/health${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  oauth: (token: string, organisationId: string, provider: string) =>
+    apiRequest<OAuthArchitecture>(`/integrations/oauth/${provider}/architecture`, {
+      token,
+      organisationId,
     }),
 };
 

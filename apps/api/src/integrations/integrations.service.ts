@@ -159,11 +159,7 @@ export class IntegrationsService {
     return integration;
   }
 
-  async createIntegration(
-    organisationId: string,
-    actorUserId: string,
-    dto: CreateIntegrationDto,
-  ) {
+  async createIntegration(organisationId: string, actorUserId: string, dto: CreateIntegrationDto) {
     const integration = await this.prisma.integration.create({
       data: {
         organisationId,
@@ -187,11 +183,7 @@ export class IntegrationsService {
     return integration;
   }
 
-  async createCredential(
-    organisationId: string,
-    actorUserId: string,
-    dto: CreateCredentialDto,
-  ) {
+  async createCredential(organisationId: string, actorUserId: string, dto: CreateCredentialDto) {
     await this.assertIntegration(organisationId, dto.integrationId);
     const encryptedData = this.encryptPlaceholder(dto.secret);
     const credential = await this.prisma.integrationCredential.create({
@@ -216,11 +208,7 @@ export class IntegrationsService {
     return { ...credential, encryptedData: { redacted: true } };
   }
 
-  async createConnection(
-    organisationId: string,
-    actorUserId: string,
-    dto: CreateConnectionDto,
-  ) {
+  async createConnection(organisationId: string, actorUserId: string, dto: CreateConnectionDto) {
     await this.assertIntegration(organisationId, dto.integrationId);
     const connection = await this.prisma.integrationConnection.create({
       data: {

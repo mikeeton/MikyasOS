@@ -6,6 +6,7 @@ import {
   CircleDollarSign,
   FileText,
   Gauge,
+  PlugZap,
   MessageSquareText,
   Settings,
   Sparkles,
@@ -100,6 +101,15 @@ export const workspaceNavigation: NavigationItem[] = [
     featureFlag: 'analytics',
     badge: 'New',
     keywords: ['reports', 'metrics', 'insights'],
+  },
+  {
+    title: 'Integrations',
+    route: '/app/integrations',
+    icon: PlugZap,
+    permission: 'Integrations.Read',
+    featureFlag: 'integrations',
+    badge: 'New',
+    keywords: ['connectors', 'marketplace', 'sync', 'webhooks'],
   },
   {
     title: 'Automation',
