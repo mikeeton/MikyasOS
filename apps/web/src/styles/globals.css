@@ -203,6 +203,81 @@
     background: hsl(var(--muted) / 0.38);
   }
 
+  .premium-hero {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  .premium-hero::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: -12rem -8rem auto auto;
+    z-index: -1;
+    width: 28rem;
+    height: 28rem;
+    border-radius: 999px;
+    background:
+      radial-gradient(circle, hsl(var(--primary) / 0.13), transparent 58%),
+      radial-gradient(circle at 25% 40%, hsl(217 91% 60% / 0.1), transparent 48%);
+    filter: blur(18px);
+    opacity: 0.9;
+  }
+
+  .premium-hero::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: auto 0 0;
+    z-index: -1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.18), transparent);
+  }
+
+  .premium-metric {
+    @apply rounded-md border border-border/80 p-4 backdrop-blur-xl transition-[border-color,box-shadow,transform,background] duration-300;
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.9), hsl(var(--background) / 0.74)),
+      hsl(var(--background));
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.05) inset,
+      0 14px 42px hsl(240 10% 3.9% / 0.06);
+  }
+
+  .premium-metric:hover {
+    border-color: hsl(var(--foreground) / 0.16);
+    transform: translateY(-2px);
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.07) inset,
+      0 20px 70px hsl(240 10% 3.9% / 0.1);
+  }
+
+  .premium-list-link {
+    @apply premium-interactive rounded-md border border-border/80 bg-background/70;
+    box-shadow: 0 1px 0 hsl(var(--foreground) / 0.04) inset;
+  }
+
+  .premium-list-link:hover {
+    @apply bg-accent;
+    border-color: hsl(var(--foreground) / 0.16);
+    box-shadow:
+      0 1px 0 hsl(var(--foreground) / 0.06) inset,
+      0 12px 38px hsl(240 10% 3.9% / 0.08);
+  }
+
+  .calendar-cell {
+    @apply text-left transition-[background,border-color,box-shadow,transform] duration-200;
+    background:
+      linear-gradient(180deg, hsl(var(--background) / 0.7), hsl(var(--background) / 0.52)),
+      hsl(var(--background));
+  }
+
+  .calendar-cell:hover {
+    background: hsl(var(--accent) / 0.72);
+    box-shadow: inset 0 0 0 1px hsl(var(--foreground) / 0.08);
+  }
+
   .status-pill {
     @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium;
   }

@@ -69,12 +69,16 @@ export function QuickCreateMenu() {
       <Button
         variant="outline"
         size="icon"
-        className="bg-background/72 backdrop-blur"
+        className="group relative bg-background/72 backdrop-blur"
         aria-label="Quick create"
         aria-expanded={open}
         onClick={() => setOpen((value) => !value)}
       >
         <Plus className="size-4" aria-hidden="true" />
+        <span
+          className="pointer-events-none absolute inset-0 rounded-md bg-primary/5 opacity-0 transition group-hover:opacity-100"
+          aria-hidden="true"
+        />
       </Button>
       <AnimatePresence>
         {open && (
@@ -83,11 +87,14 @@ export function QuickCreateMenu() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 8, scale: 0.98 }}
             transition={premiumSpring}
-            className="premium-glass absolute right-0 z-40 mt-3 w-[min(22rem,calc(100vw-2rem))] overflow-hidden rounded-md p-2"
+            className="premium-glass absolute right-0 z-40 mt-3 w-[min(23rem,calc(100vw-2rem))] overflow-hidden rounded-md p-2 shadow-2xl"
           >
-            <p className="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-              Quick create
-            </p>
+            <div className="mb-1 rounded-md border bg-background/60 px-3 py-3">
+              <p className="text-sm font-semibold">Quick create</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Start common work without leaving the workspace.
+              </p>
+            </div>
             <div className="grid gap-1">
               {quickCreateItems.map((item) => {
                 const Icon = item.icon;
@@ -96,9 +103,9 @@ export function QuickCreateMenu() {
                     key={item.label}
                     to={item.to}
                     onClick={() => setOpen(false)}
-                    className="premium-interactive flex items-center gap-3 rounded-md px-3 py-3 hover:bg-accent"
+                    className="premium-list-link flex items-center gap-3 px-3 py-3"
                   >
-                    <span className="grid size-9 place-items-center rounded-md bg-secondary">
+                    <span className="grid size-9 place-items-center rounded-md border bg-secondary/70">
                       <Icon className="size-4" aria-hidden="true" />
                     </span>
                     <span className="min-w-0">

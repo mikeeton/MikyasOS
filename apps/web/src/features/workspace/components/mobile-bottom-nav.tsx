@@ -15,7 +15,7 @@ export function MobileBottomNav() {
   const location = useLocation();
 
   return (
-    <nav className="premium-glass fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 gap-1 rounded-md p-1 shadow-xl lg:hidden">
+    <nav className="premium-glass fixed inset-x-3 bottom-3 z-40 grid grid-cols-5 gap-1 rounded-lg p-1.5 shadow-2xl lg:hidden">
       {mobileItems.map((item) => {
         const Icon = item.icon;
         const active =
@@ -25,10 +25,16 @@ export function MobileBottomNav() {
             key={item.label}
             to={item.to}
             className={cn(
-              'grid min-h-12 place-items-center rounded-md px-1 py-1 text-[11px] text-muted-foreground',
-              active && 'bg-foreground text-background',
+              'premium-focus relative grid min-h-12 place-items-center rounded-md px-1 py-1 text-[11px] text-muted-foreground transition',
+              active && 'bg-foreground text-background shadow-lg',
             )}
           >
+            {active && (
+              <span
+                className="absolute -top-1 h-1 w-6 rounded-full bg-current opacity-70"
+                aria-hidden="true"
+              />
+            )}
             <Icon className="mb-0.5 size-4" aria-hidden="true" />
             <span>{item.label}</span>
           </Link>

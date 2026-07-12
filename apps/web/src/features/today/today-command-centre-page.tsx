@@ -46,13 +46,13 @@ function MetricCard({
   icon: typeof CalendarDays;
 }) {
   return (
-    <section className="premium-card p-4">
+    <section className="premium-metric">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
           <p className="mt-2 text-2xl font-semibold">{value}</p>
         </div>
-        <span className="grid size-10 place-items-center rounded-md bg-secondary">
+        <span className="grid size-10 place-items-center rounded-md border bg-secondary/70 shadow-sm">
           <Icon className="size-4" />
         </span>
       </div>
@@ -72,14 +72,14 @@ function ActionCard({ action }: { action: TodayAction }) {
   return (
     <Link
       to={action.route}
-      className={cn('premium-interactive rounded-md border p-4 hover:bg-accent', priorityClass)}
+      className={cn('premium-list-link relative overflow-hidden p-4', priorityClass)}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="font-medium">{action.title}</p>
           <p className="mt-1 text-sm leading-6 text-muted-foreground">{action.detail}</p>
         </div>
-        <span className="rounded-full bg-secondary px-2 py-1 text-xs text-muted-foreground">
+        <span className="rounded-full border bg-background/70 px-2 py-1 text-xs text-muted-foreground">
           {action.source}
         </span>
       </div>
@@ -101,7 +101,7 @@ export function TodayCommandCentrePage() {
 
   return (
     <section className="grid gap-6">
-      <header className="premium-section overflow-hidden p-5 sm:p-6">
+      <header className="premium-section premium-hero p-5 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="status-pill status-pill-success">
@@ -202,7 +202,7 @@ export function TodayCommandCentrePage() {
                   <Link
                     key={meeting.id}
                     to={`/app/meetings/${meeting.id}`}
-                    className="premium-interactive rounded-md border p-4 hover:bg-accent"
+                    className="premium-list-link block p-4"
                   >
                     <p className="font-medium">{meeting.title}</p>
                     <p className="mt-1 text-sm text-muted-foreground">
@@ -221,7 +221,7 @@ export function TodayCommandCentrePage() {
         </div>
 
         <aside className="grid content-start gap-6">
-          <section className="premium-card p-5">
+          <section className="premium-card premium-hero p-5">
             <div className="flex items-center gap-2">
               <Bot className="size-4" />
               <h2 className="font-semibold">Ask AI about today</h2>
@@ -237,7 +237,7 @@ export function TodayCommandCentrePage() {
                   key={question}
                   to="/app/ai"
                   onClick={() => askAi(question)}
-                  className="premium-interactive rounded-md border px-3 py-3 text-sm hover:bg-accent"
+                  className="premium-list-link px-3 py-3 text-sm"
                 >
                   {question}
                 </Link>
@@ -252,7 +252,7 @@ export function TodayCommandCentrePage() {
                 <Link
                   key={task.id}
                   to={`/app/tasks/${task.id}`}
-                  className="rounded-md border p-3 text-sm"
+                  className="premium-list-link p-3 text-sm"
                 >
                   <span className="font-medium">{task.title}</span>
                   <span className="mt-1 block text-xs text-muted-foreground">
@@ -272,7 +272,7 @@ export function TodayCommandCentrePage() {
             <h2 className="font-semibold">Overdue invoices</h2>
             <div className="mt-4 grid gap-3">
               {today.overdueInvoices.slice(0, 6).map((invoice) => (
-                <Link key={invoice.id} to="/app/invoices" className="rounded-md border p-3 text-sm">
+                <Link key={invoice.id} to="/app/invoices" className="premium-list-link p-3 text-sm">
                   <span className="font-medium">{invoice.invoiceNumber}</span>
                   <span className="mt-1 block text-xs text-muted-foreground">
                     {formatMoney(invoice.balance ?? invoice.total, invoice.currency)} outstanding

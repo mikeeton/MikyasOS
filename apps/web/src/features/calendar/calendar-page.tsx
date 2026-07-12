@@ -277,7 +277,7 @@ function EventPill({ event, compact = false }: { event: CalendarEvent; compact?:
         dragEvent.dataTransfer.effectAllowed = 'move';
       }}
       className={cn(
-        'flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium',
+        'flex cursor-grab items-center gap-1.5 rounded-md border px-2 py-1 text-xs font-medium shadow-sm transition hover:shadow-md active:cursor-grabbing',
         style.className,
         compact && 'truncate px-1.5 py-0.5 text-[11px]',
       )}
@@ -302,7 +302,7 @@ function EventRow({ event }: { event: CalendarEvent }) {
   const style = eventStyles[event.type];
   const money = formatMoney(event.amount);
   return (
-    <article className="premium-card flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
+    <article className="premium-list-link flex flex-col gap-3 p-4 md:flex-row md:items-center md:justify-between">
       <div className="min-w-0">
         <div className="flex flex-wrap items-center gap-2">
           <EventPill event={event} />
@@ -548,7 +548,7 @@ export function CalendarPage() {
 
   return (
     <div className="grid gap-6">
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+      <header className="premium-section premium-hero flex flex-col gap-4 p-5 sm:p-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">Workspace / Calendar</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">Calendar command centre</h1>
@@ -595,22 +595,22 @@ export function CalendarPage() {
       </header>
 
       <section className="grid gap-3 md:grid-cols-4">
-        <div className="premium-card p-4">
+        <div className="premium-metric">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">This month</p>
           <p className="mt-2 text-2xl font-semibold">{monthEventCount}</p>
           <p className="mt-1 text-sm text-muted-foreground">dated records</p>
         </div>
-        <div className="premium-card p-4">
+        <div className="premium-metric">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Upcoming</p>
           <p className="mt-2 text-2xl font-semibold">{upcomingEvents.length}</p>
           <p className="mt-1 text-sm text-muted-foreground">next actions</p>
         </div>
-        <div className="premium-card p-4">
+        <div className="premium-metric">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Overdue</p>
           <p className="mt-2 text-2xl font-semibold">{overdueEvents.length}</p>
           <p className="mt-1 text-sm text-muted-foreground">needs attention</p>
         </div>
-        <div className="premium-card p-4">
+        <div className="premium-metric">
           <p className="text-xs uppercase tracking-wide text-muted-foreground">Selected day</p>
           <p className="mt-2 text-2xl font-semibold">{selectedEvents.length}</p>
           <p className="mt-1 text-sm text-muted-foreground">{formatDate(selectedDate)}</p>
@@ -635,7 +635,7 @@ export function CalendarPage() {
       ) : view === 'month' ? (
         <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_380px]">
           <div className="premium-card overflow-hidden">
-            <div className="flex items-center justify-between border-b px-4 py-3">
+            <div className="flex items-center justify-between border-b bg-background/60 px-4 py-3 backdrop-blur">
               <div>
                 <p className="text-sm text-muted-foreground">Live month view</p>
                 <h2 className="text-lg font-semibold">{monthLabel}</h2>
@@ -660,7 +660,7 @@ export function CalendarPage() {
                 </Button>
               </div>
             </div>
-            <div className="grid grid-cols-7 border-b bg-secondary/40 text-xs font-medium text-muted-foreground">
+            <div className="grid grid-cols-7 border-b bg-secondary/55 text-xs font-medium text-muted-foreground">
               {weekdayLabels.map((label) => (
                 <div key={label} className="px-3 py-2">
                   {label}
@@ -685,7 +685,7 @@ export function CalendarPage() {
                       rescheduleEvent(event.dataTransfer.getData('text/calendar-event-id'), key);
                     }}
                     className={cn(
-                      'min-h-32 border-b border-r p-2 text-left transition hover:bg-accent/60 focus:outline-none focus:ring-2 focus:ring-ring',
+                      'calendar-cell min-h-32 border-b border-r p-2 focus:outline-none focus:ring-2 focus:ring-ring',
                       !isCurrentMonth && 'bg-secondary/30 text-muted-foreground',
                       isSelected && 'bg-primary/5 ring-2 ring-inset ring-primary',
                     )}
@@ -734,7 +734,7 @@ export function CalendarPage() {
               </div>
             </section>
 
-            <section className="premium-card p-4">
+            <section className="premium-card premium-hero p-4">
               <div className="flex items-center gap-2">
                 <Plus className="size-4" />
                 <h2 className="font-semibold">Create from selected date</h2>
@@ -745,7 +745,7 @@ export function CalendarPage() {
                   onChange={(event) =>
                     setCreateType(event.target.value as 'meeting' | 'task' | 'invoice-reminder')
                   }
-                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  className="premium-input"
                 >
                   <option value="meeting">Meeting</option>
                   <option value="task">Task on first project</option>
@@ -761,7 +761,7 @@ export function CalendarPage() {
                         ? 'Task title'
                         : 'Invoice/customer to follow up'
                   }
-                  className="h-10 rounded-md border bg-background px-3 text-sm outline-none focus:ring-2 focus:ring-ring"
+                  className="premium-input"
                 />
                 <Button
                   disabled={!meetingTitle.trim() || createRecord.isPending}

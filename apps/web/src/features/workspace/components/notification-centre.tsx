@@ -162,7 +162,7 @@ export function NotificationCentre() {
                 </div>
               </div>
             </div>
-            <div className="max-h-[26rem] overflow-y-auto p-2">
+            <div className="max-h-[26rem] overflow-y-auto p-2.5">
               {liveNotifications.length === 0 ? (
                 <div className="grid gap-2 px-4 py-12 text-center">
                   <span className="mx-auto grid size-12 place-items-center rounded-md border bg-secondary">
@@ -177,7 +177,7 @@ export function NotificationCentre() {
               ) : (
                 Object.entries(groupedNotifications).map(([group, items]) => (
                   <section key={group} aria-labelledby={`notification-group-${group}`}>
-                    <div className="sticky top-0 z-10 flex items-center justify-between bg-background/90 px-2 py-2 backdrop-blur">
+                    <div className="sticky top-0 z-10 flex items-center justify-between rounded-md bg-background/90 px-2 py-2 backdrop-blur">
                       <h2
                         id={`notification-group-${group}`}
                         className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
@@ -210,7 +210,7 @@ export function NotificationCentre() {
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           className={cn(
-                            'premium-interactive overflow-hidden rounded-md border bg-background/70 hover:bg-accent',
+                            'premium-list-link overflow-hidden',
                             notification.unread && 'border-primary/25 bg-primary/5',
                           )}
                         >
