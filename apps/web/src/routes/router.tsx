@@ -297,6 +297,76 @@ const AutomationSettingsPage = lazy(() =>
     default: module.AutomationSettingsPage,
   })),
 );
+const FinanceDashboardPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.FinanceDashboardPage,
+  })),
+);
+const InvoicesPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.InvoicesPage,
+  })),
+);
+const QuotesPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.QuotesPage,
+  })),
+);
+const PaymentsPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.PaymentsPage,
+  })),
+);
+const ExpensesPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.ExpensesPage,
+  })),
+);
+const PurchaseOrdersPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.PurchaseOrdersPage,
+  })),
+);
+const BudgetsPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.BudgetsPage,
+  })),
+);
+const CashFlowPage = lazy(() =>
+  import('@/features/finance/pages/finance-pages').then((module) => ({
+    default: module.CashFlowPage,
+  })),
+);
+const AnalyticsDashboardPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.AnalyticsDashboardPage,
+  })),
+);
+const DashboardsPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.DashboardsPage,
+  })),
+);
+const AnalyticsReportsPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.AnalyticsReportsPage,
+  })),
+);
+const KpisPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.KpisPage,
+  })),
+);
+const ForecastsPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.ForecastsPage,
+  })),
+);
+const SnapshotsPage = lazy(() =>
+  import('@/features/analytics/pages/analytics-pages').then((module) => ({
+    default: module.SnapshotsPage,
+  })),
+);
 
 function withSuspense(children: ReactNode) {
   return (
@@ -591,6 +661,62 @@ export const router = createBrowserRouter([
           {
             path: 'automation/settings',
             element: withSuspense(<AutomationSettingsPage />),
+          },
+          {
+            path: 'finance',
+            element: withSuspense(<FinanceDashboardPage />),
+          },
+          {
+            path: 'invoices',
+            element: withSuspense(<InvoicesPage />),
+          },
+          {
+            path: 'quotes',
+            element: withSuspense(<QuotesPage />),
+          },
+          {
+            path: 'payments',
+            element: withSuspense(<PaymentsPage />),
+          },
+          {
+            path: 'expenses',
+            element: withSuspense(<ExpensesPage />),
+          },
+          {
+            path: 'purchase-orders',
+            element: withSuspense(<PurchaseOrdersPage />),
+          },
+          {
+            path: 'reports',
+            element: withSuspense(<AnalyticsReportsPage />),
+          },
+          {
+            path: 'budgets',
+            element: withSuspense(<BudgetsPage />),
+          },
+          {
+            path: 'cashflow',
+            element: withSuspense(<CashFlowPage />),
+          },
+          {
+            path: 'analytics',
+            element: withSuspense(<AnalyticsDashboardPage />),
+          },
+          {
+            path: 'dashboards',
+            element: withSuspense(<DashboardsPage />),
+          },
+          {
+            path: 'kpis',
+            element: withSuspense(<KpisPage />),
+          },
+          {
+            path: 'forecasts',
+            element: withSuspense(<ForecastsPage />),
+          },
+          {
+            path: 'snapshots',
+            element: withSuspense(<SnapshotsPage />),
           },
         ],
       },

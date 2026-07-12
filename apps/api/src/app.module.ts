@@ -3,11 +3,13 @@ import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 
 import { AuthModule } from './auth/auth.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 import { AutomationModule } from './automation/automation.module';
 import { AppConfigModule } from './config/app-config.module';
 import { AppConfigService } from './config/app-config.service';
 import { CommunicationModule } from './communication/communication.module';
 import { CrmModule } from './crm/crm.module';
+import { FinanceModule } from './finance/finance.module';
 import { HealthModule } from './health/health.module';
 import { AiModule } from './infra/ai/ai.module';
 import { AiOsModule } from './ai-os/ai-os.module';
@@ -23,6 +25,7 @@ import { DocumentVersionsModule } from './documents/document-versions.module';
 import { DocumentsModule } from './documents/documents.module';
 import { FoldersModule } from './documents/folders.module';
 import { InvitationsModule } from './invitations/invitations.module';
+import { IntegrationsModule } from './integrations/integrations.module';
 import { OrganisationsModule } from './organisations/organisations.module';
 import { PermissionsModule } from './permissions/permissions.module';
 import { ProjectsModule } from './projects/projects.module';
@@ -62,9 +65,12 @@ import { UsersModule } from './users/users.module';
     OrganisationsModule,
     RolesModule,
     PermissionsModule,
+    AnalyticsModule,
+    IntegrationsModule,
     AutomationModule,
     CommunicationModule,
     CrmModule,
+    FinanceModule,
     ProjectsModule,
     DocumentActivitiesModule,
     DocumentsModule,

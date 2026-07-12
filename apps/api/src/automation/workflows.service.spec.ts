@@ -4,10 +4,22 @@ import { WorkflowsService } from './workflows.service';
 
 describe('WorkflowsService', () => {
   it('creates a workflow with version, trigger, actions, and audit records', async () => {
+    type WorkflowCreateInput = {
+      data: { organisationId: string; createdById: string };
+    };
+    type VersionCreateInput = {
+      data: { workflowId: string; version: number };
+    };
     const workflow = { id: 'workflow-id', name: 'Customer onboarding' };
+    const workflowCreate = jest
+      .fn<Promise<typeof workflow>, [WorkflowCreateInput]>()
+      .mockResolvedValue(workflow);
+    const versionCreate = jest
+      .fn<Promise<{ id: string }>, [VersionCreateInput]>()
+      .mockResolvedValue({ id: 'version-id' });
     const tx = {
       workflow: {
-        create: jest.fn().mockResolvedValue(workflow),
+        create: workflowCreate,
         findUniqueOrThrow: jest.fn().mockResolvedValue({
           ...workflow,
           triggers: [],
@@ -16,7 +28,7 @@ describe('WorkflowsService', () => {
           versions: [],
         }),
       },
-      workflowVersion: { create: jest.fn().mockResolvedValue({ id: 'version-id' }) },
+      workflowVersion: { create: versionCreate },
       workflowTrigger: { create: jest.fn().mockResolvedValue({ id: 'trigger-id' }) },
       workflowCondition: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
       workflowAction: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
@@ -43,16 +55,12 @@ describe('WorkflowsService', () => {
       ],
     });
 
-    expect(tx.workflow.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ organisationId: 'org-id', createdById: 'user-id' }),
-      }),
-    );
-    expect(tx.workflowVersion.create).toHaveBeenCalledWith(
-      expect.objectContaining({
-        data: expect.objectContaining({ workflowId: 'workflow-id', version: 1 }),
-      }),
-    );
+    const workflowCreateCall = workflowCreate.mock.calls[0]?.[0];
+    const versionCreateCall = versionCreate.mock.calls[0]?.[0];
+    expect(workflowCreateCall?.data.organisationId).toBe('org-id');
+    expect(workflowCreateCall?.data.createdById).toBe('user-id');
+    expect(versionCreateCall?.data.workflowId).toBe('workflow-id');
+    expect(versionCreateCall?.data.version).toBe(1);
     expect(tx.workflowTrigger.create).toHaveBeenCalled();
     expect(tx.workflowAction.createMany).toHaveBeenCalled();
     expect(audit.record).toHaveBeenCalledWith(

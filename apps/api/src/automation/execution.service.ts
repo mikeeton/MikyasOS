@@ -54,7 +54,7 @@ export class ExecutionService {
         triggeredById: actorUserId,
         status: WorkflowExecutionStatus.QUEUED,
         triggerPayload: (dto.payload ?? {}) as Prisma.InputJsonValue,
-        context: { safeExecution: true, source: 'manual' } as Prisma.InputJsonValue,
+        context: { safeExecution: true, source: 'manual' },
       },
     });
     await this.queue.enqueueExecution(workflowId, execution.id, organisationId);
@@ -123,7 +123,7 @@ export class ExecutionService {
     }
 
     for (const action of execution.workflow.actions) {
-      await this.validateAction(action.type);
+      this.validateAction(action.type);
       await this.log(
         organisationId,
         execution.workflowId,

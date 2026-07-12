@@ -54,6 +54,21 @@ export const DEFAULT_PERMISSIONS = [
   'Automation.Manage',
   'Automation.Execute',
   'Automation.Approve',
+  'Finance.Read',
+  'Finance.Write',
+  'Finance.Manage',
+  'Finance.Approve',
+  'Finance.Reports',
+  'Analytics.Read',
+  'Analytics.Write',
+  'Analytics.Manage',
+  'Analytics.Reports',
+  'Analytics.Forecasts',
+  'Integrations.Read',
+  'Integrations.Write',
+  'Integrations.Manage',
+  'Integrations.Sync',
+  'Integrations.Webhooks',
 ] as const;
 
 export type DefaultPermission = (typeof DEFAULT_PERMISSIONS)[number];

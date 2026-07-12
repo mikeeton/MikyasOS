@@ -62,6 +62,14 @@ export type AutomationQuery = {
   search?: string;
 };
 
+export type FinanceQuery = AutomationQuery & {
+  status?: string;
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
+};
+
+export type AnalyticsQuery = AutomationQuery;
+
 export type CrmTag = {
   id: string;
   name: string;
@@ -1476,6 +1484,361 @@ export const automationApi = {
     }),
   approvals: (token: string, organisationId: string) =>
     apiRequest<WorkflowApproval[]>('/automation/approvals', { token, organisationId }),
+};
+
+export type FinanceStatus =
+  'DRAFT' | 'SENT' | 'APPROVED' | 'PARTIALLY_PAID' | 'PAID' | 'OVERDUE' | 'VOID' | 'CANCELLED';
+
+export type FinanceMoneyRecord = {
+  id: string;
+  organisationId: string;
+  currency?: string;
+  subtotal?: string | number;
+  tax?: string | number;
+  discount?: string | number;
+  total?: string | number;
+  amount?: string | number;
+  balance?: string | number;
+  status?: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Invoice = FinanceMoneyRecord & {
+  invoiceNumber: string;
+  customerId?: string | null;
+  projectId?: string | null;
+  amountPaid?: string | number;
+  issueDate: string;
+  dueDate?: string | null;
+  paidDate?: string | null;
+  notes?: string | null;
+  items?: Array<{
+    id: string;
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    total: number;
+  }>;
+};
+
+export type Quote = FinanceMoneyRecord & {
+  quoteNumber: string;
+  customerId?: string | null;
+  projectId?: string | null;
+  expiryDate?: string | null;
+};
+
+export type Payment = FinanceMoneyRecord & {
+  invoiceId?: string | null;
+  customerId?: string | null;
+  method: string;
+  paymentDate: string;
+  reference?: string | null;
+};
+
+export type Expense = FinanceMoneyRecord & {
+  title: string;
+  vendor?: string | null;
+  categoryId?: string | null;
+  customerId?: string | null;
+  projectId?: string | null;
+  expenseDate: string;
+};
+
+export type PurchaseOrder = FinanceMoneyRecord & {
+  orderNumber: string;
+  supplierId?: string | null;
+  projectId?: string | null;
+};
+
+export type Budget = FinanceMoneyRecord & {
+  name: string;
+  amount: string | number;
+  spent: string | number;
+  periodStart: string;
+  periodEnd: string;
+};
+
+export type CashFlowEntry = FinanceMoneyRecord & {
+  direction: 'INFLOW' | 'OUTFLOW';
+  expectedDate: string;
+  actualDate?: string | null;
+  description?: string | null;
+};
+
+export type FinancialReport = {
+  id: string;
+  type: string;
+  name: string;
+  periodStart: string;
+  periodEnd: string;
+  data: Record<string, unknown>;
+  createdAt: string;
+};
+
+export type FinanceDashboard = {
+  revenue: number;
+  amountPaid: number;
+  expenses: number;
+  profit: number;
+  outstandingInvoices: number;
+  overdueInvoices: number;
+  upcomingPayments: number;
+  cashFlow: number;
+  budgetUtilisation: Array<{
+    id: string;
+    name: string;
+    amount: number;
+    spent: number;
+    utilisation: number;
+  }>;
+  recentTransactions: unknown[];
+  aiFinancialInsights: { status: string; note: string };
+};
+
+export type FinanceCapabilities = {
+  modules: string[];
+  reports: string[];
+  integrations: Record<string, string>;
+  aiPreparation: Record<string, unknown>;
+};
+
+export type CreateInvoiceBody = {
+  customerId?: string;
+  projectId?: string;
+  invoiceNumber?: string;
+  status?: FinanceStatus;
+  currency?: string;
+  issueDate: string;
+  dueDate?: string;
+  notes?: string;
+  items?: Array<{
+    description: string;
+    quantity: number;
+    unitPrice: number;
+    taxRate?: number;
+    discount?: number;
+  }>;
+};
+
+export const financeApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<FinanceCapabilities>('/finance/capabilities', { token, organisationId }),
+  dashboard: (token: string, organisationId: string) =>
+    apiRequest<FinanceDashboard>('/finance/dashboard', { token, organisationId }),
+  invoices: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<Invoice>>(`/finance/invoices${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createInvoice: (token: string, organisationId: string, body: CreateInvoiceBody) =>
+    apiRequest<Invoice>('/finance/invoices', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  quotes: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<Quote>>(`/finance/quotes${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createQuote: (token: string, organisationId: string, body: Partial<CreateInvoiceBody>) =>
+    apiRequest<Quote>('/finance/quotes', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  payments: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<Payment>>(`/finance/payments${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createPayment: (token: string, organisationId: string, body: Partial<Payment>) =>
+    apiRequest<Payment>('/finance/payments', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  expenses: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<Expense>>(`/finance/expenses${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createExpense: (token: string, organisationId: string, body: Partial<Expense>) =>
+    apiRequest<Expense>('/finance/expenses', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  purchaseOrders: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<PurchaseOrder>>(`/finance/purchase-orders${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  budgets: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<Budget>>(`/finance/budgets${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  cashFlow: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<CashFlowEntry>>(`/finance/cashflow${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  reports: (token: string, organisationId: string, query: FinanceQuery = {}) =>
+    apiRequest<PaginatedResult<FinancialReport>>(`/finance/reports${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  reportSummary: (token: string, organisationId: string) =>
+    apiRequest<Record<string, unknown>>('/finance/reports/summary', { token, organisationId }),
+};
+
+export type AnalyticsExecutiveDashboard = {
+  companyHealthScore: number;
+  revenue: number;
+  expenses: number;
+  profit: number;
+  cashFlow: number;
+  salesPipeline: { leads: number; customers: number };
+  projectsAtRisk: number;
+  employeeCapacity: { status: string; tasks: number };
+  outstandingInvoices: number;
+  customerSatisfaction: { status: string; score: number | null };
+  activity: {
+    projects: number;
+    tasks: number;
+    documents: number;
+    workflows: number;
+    meetings: number;
+  };
+  aiExecutiveBriefing: { status: string; note: string };
+};
+
+export type AnalyticsCapabilities = {
+  modules: string[];
+  metrics: string[];
+  reports: string[];
+  charts: string[];
+  forecasting: string[];
+  aiPreparation: Record<string, unknown>;
+};
+
+export type AnalyticsDashboard = {
+  id: string;
+  name: string;
+  description?: string | null;
+  visibility: string;
+  createdAt: string;
+};
+
+export type AnalyticsRecord = {
+  id: string;
+  name?: string;
+  key?: string;
+  type?: string;
+  status?: string;
+  createdAt: string;
+};
+
+export const analyticsApi = {
+  capabilities: (token: string, organisationId: string) =>
+    apiRequest<AnalyticsCapabilities>('/analytics/capabilities', { token, organisationId }),
+  executive: (token: string, organisationId: string) =>
+    apiRequest<AnalyticsExecutiveDashboard>('/analytics/executive', { token, organisationId }),
+  dashboards: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsDashboard>>(
+      `/analytics/dashboards${toQueryString(query)}`,
+      {
+        token,
+        organisationId,
+      },
+    ),
+  createDashboard: (
+    token: string,
+    organisationId: string,
+    body: { name: string; description?: string },
+  ) =>
+    apiRequest<AnalyticsDashboard>('/analytics/dashboards', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  metrics: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/metrics${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  kpis: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/kpis${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createKpi: (token: string, organisationId: string, body: { name: string; target?: number }) =>
+    apiRequest<AnalyticsRecord>('/analytics/kpis', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  reports: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/reports${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createReport: (token: string, organisationId: string, body: { name: string; type: string }) =>
+    apiRequest<AnalyticsRecord>('/analytics/reports', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  forecasts: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/forecasts${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createForecast: (token: string, organisationId: string, body: { name: string; type: string }) =>
+    apiRequest<AnalyticsRecord>('/analytics/forecasts', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
+  snapshots: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/snapshots${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createSnapshot: (token: string, organisationId: string) =>
+    apiRequest<AnalyticsRecord>('/analytics/snapshots', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify({}),
+    }),
+  charts: (token: string, organisationId: string, query: AnalyticsQuery = {}) =>
+    apiRequest<PaginatedResult<AnalyticsRecord>>(`/analytics/charts${toQueryString(query)}`, {
+      token,
+      organisationId,
+    }),
+  createChart: (
+    token: string,
+    organisationId: string,
+    body: { name: string; type: string; config: Record<string, unknown> },
+  ) =>
+    apiRequest<AnalyticsRecord>('/analytics/charts', {
+      method: 'POST',
+      token,
+      organisationId,
+      body: JSON.stringify(body),
+    }),
 };
 
 export const communicationApi = {

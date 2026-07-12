@@ -103,7 +103,7 @@ export class WorkflowsService {
             workflowId: created.id,
             operator: condition.operator,
             field: condition.field,
-            value: (condition.value ?? {}) as Prisma.InputJsonValue,
+            value: condition.value ?? {},
             position: index,
           })),
         });

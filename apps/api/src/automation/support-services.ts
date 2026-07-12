@@ -71,7 +71,7 @@ export class VariableService {
         organisationId,
         workflowId: dto.workflowId,
         key: dto.key,
-        value: (dto.value ?? {}) as Prisma.InputJsonValue,
+        value: dto.value ?? {},
         isSecret: dto.isSecret ?? false,
       },
     });
