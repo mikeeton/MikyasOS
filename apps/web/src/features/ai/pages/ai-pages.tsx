@@ -16,7 +16,15 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { cn } from '@/lib/utils';
+import {
+  AiActionProposal,
+  AiCitationChip,
+  AiConfidence,
+  AiRecommendationCard,
+  AiSafetyStrip,
+} from '../components/ai-experience';
 import {
   useAiActions,
   useAiCapabilities,
@@ -134,7 +142,7 @@ export function AiWorkspacePage() {
   return (
     <AiShell
       title="AI command centre"
-      description="The intelligence layer for business context, memory, retrieval, reasoning, and confirmation-ready actions."
+      description="The operating system copilot for context, memory, retrieval, reasoning, and confirmation-ready actions."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatusCard
@@ -182,7 +190,8 @@ export function AiWorkspacePage() {
             <div>
               <h2 className="font-semibold">Conversation preview</h2>
               <p className="text-sm text-muted-foreground">
-                Streaming, markdown, citations, and structured results are wired for Part 2.
+                Ask naturally. mikyasOS keeps answers grounded with citations, safety checks, and
+                actions that require confirmation.
               </p>
             </div>
           </div>
@@ -196,11 +205,9 @@ export function AiWorkspacePage() {
             <div className="mt-3 flex flex-wrap gap-2">
               <Button onClick={runPreview} disabled={orchestrate.isPending}>
                 <Play className="mr-2 size-4" />
-                {orchestrate.isPending ? 'Thinking...' : 'Run AI preview'}
+                {orchestrate.isPending ? 'Thinking...' : 'Ask mikyasOS'}
               </Button>
-              <Button variant="outline" disabled>
-                Stream response
-              </Button>
+              <StatusBadge tone="ai">Context-aware</StatusBadge>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               {operationalPrompts.map((prompt) => (
@@ -219,7 +226,8 @@ export function AiWorkspacePage() {
             <div className="mt-4 rounded-md border bg-secondary/40 p-4">
               <div className="flex items-center gap-2 text-sm font-medium">
                 <Sparkles className="size-4" />
-                Structured result · confidence {orchestrate.data.response.confidence}
+                Structured result
+                <AiConfidence value={String(orchestrate.data.response.confidence)} />
               </div>
               <p className="mt-3 text-sm leading-6 text-muted-foreground">
                 {orchestrate.data.response.answer}
@@ -232,9 +240,11 @@ export function AiWorkspacePage() {
                   <div className="mt-2 flex flex-wrap gap-2">
                     {orchestrate.data.response.citations.length ? (
                       orchestrate.data.response.citations.map((citation) => (
-                        <span key={`${citation.type}-${citation.id}`} className="status-pill">
-                          {citation.type}: {citation.title}
-                        </span>
+                        <AiCitationChip
+                          key={`${citation.type}-${citation.id}`}
+                          type={citation.type}
+                          title={citation.title}
+                        />
                       ))
                     ) : (
                       <span className="text-xs text-muted-foreground">
@@ -249,25 +259,23 @@ export function AiWorkspacePage() {
                   </p>
                   <div className="mt-2 flex flex-wrap gap-2">
                     {orchestrate.data.response.suggestedActions.map((action) => (
-                      <span key={action.key} className="status-pill status-pill-info">
-                        {action.label} · confirm first
-                      </span>
+                      <AiActionProposal
+                        key={action.key}
+                        label={action.label}
+                        confidence={String(orchestrate.data.response.confidence)}
+                      />
                     ))}
                   </div>
                 </div>
               </div>
-              <div className="mt-4 grid gap-2 rounded-md border border-border/70 bg-background/70 p-3 text-xs text-muted-foreground sm:grid-cols-3">
-                <span>
-                  Grounded: {orchestrate.data.response.safety.groundedInBusinessData ? 'yes' : 'no'}
-                </span>
-                <span>
-                  Permissions:{' '}
-                  {orchestrate.data.response.safety.permissionsApplied ? 'applied' : 'missing'}
-                </span>
-                <span>
-                  Destructive blocked:{' '}
-                  {orchestrate.data.response.safety.destructiveActionBlocked ? 'yes' : 'no'}
-                </span>
+              <div className="mt-4">
+                <AiSafetyStrip
+                  grounded={Boolean(orchestrate.data.response.safety.groundedInBusinessData)}
+                  permissionsApplied={Boolean(orchestrate.data.response.safety.permissionsApplied)}
+                  destructiveBlocked={Boolean(
+                    orchestrate.data.response.safety.destructiveActionBlocked,
+                  )}
+                />
               </div>
             </div>
           ) : null}
@@ -300,6 +308,30 @@ export function AiWorkspacePage() {
           </section>
         </div>
       </div>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <AiRecommendationCard
+          title="Ask what needs attention"
+          reason="Combines today, projects, finance, and notifications so the user starts with priority rather than navigation."
+          impact="Reduces module switching"
+          action="Open Today"
+          route="/app/today"
+        />
+        <AiRecommendationCard
+          title="Review project risk"
+          reason="Uses project and task context to explain likely delivery issues before they become surprises."
+          impact="Improves decision timing"
+          action="View projects"
+          route="/app/projects"
+        />
+        <AiRecommendationCard
+          title="Check overdue revenue"
+          reason="Finance context lets the copilot answer which invoices need follow-up and why."
+          impact="Protects cash flow"
+          action="Open finance"
+          route="/app/finance"
+        />
+      </section>
 
       {!capabilities.data && capabilities.isLoading ? <LoadingCard /> : null}
     </AiShell>

@@ -76,3 +76,6 @@ If any answer is no, improve the solution before implementation.
 - [Design Language](./design-language.md)
 - [UX And Information Architecture](./ux-information-architecture.md)
 - [Dashboard Mission Control](./dashboard-mission-control.md)
+- [Motion Language](./motion-language.md)
+- [Enterprise Components](./enterprise-components.md)
+- [AI Experience](./ai-experience.md)

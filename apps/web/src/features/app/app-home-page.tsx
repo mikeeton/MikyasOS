@@ -1,9 +1,11 @@
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   ArrowUpRight,
   Bot,
   Building2,
   CalendarDays,
   CheckCircle2,
+  ChevronDown,
   Clock3,
   CreditCard,
   FileText,
@@ -16,10 +18,13 @@ import {
   Target,
   UsersRound,
 } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
 
 import { Button } from '@/components/ui/button';
+import { EnterpriseCard } from '@/components/ui/enterprise-card';
+import { DashboardSkeleton } from '@/components/ui/skeleton';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { useEnterpriseDashboard, usePlatformOverview } from '@/features/admin/hooks/use-admin';
 import {
   useExecutiveAnalytics,
@@ -28,6 +33,7 @@ import {
 import { useBillingOverview } from '@/features/launch/hooks/use-billing';
 import { workspaceNavigation } from '@/features/workspace/config/navigation';
 import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
+import { feedbackPress, widgetReveal } from '@/features/workspace/motion/premium-motion';
 import { cn } from '@/lib/utils';
 
 const operationalTimeline = [
@@ -74,6 +80,30 @@ const operatingPillars = [
   },
 ] as const;
 
+const defaultCollapsedWidgets: Record<string, boolean> = {
+  operatingLayer: false,
+  priorities: false,
+  briefing: false,
+  pinnedApps: false,
+  health: false,
+  activity: false,
+  aiActions: false,
+  timeline: false,
+};
+
+function readDashboardPreferences() {
+  try {
+    return {
+      ...defaultCollapsedWidgets,
+      ...(JSON.parse(
+        localStorage.getItem('mikyasos:dashboard-collapsed-widgets') ?? '{}',
+      ) as Partial<Record<string, boolean>>),
+    };
+  } catch {
+    return defaultCollapsedWidgets;
+  }
+}
+
 export function AppHomePage() {
   const { currentUser, currentOrganisation, notifications } = useWorkspace();
   const analytics = useExecutiveAnalytics();
@@ -82,6 +112,7 @@ export function AppHomePage() {
   const enterprise = useEnterpriseDashboard();
   const trackEvent = useTrackProductEvent();
   const trackedOrganisationRef = useRef<string | null>(null);
+  const [collapsedWidgets, setCollapsedWidgets] = useState(readDashboardPreferences);
   const pinnedApps = workspaceNavigation.slice(0, 6);
   const hasDashboardError =
     analytics.isError || platform.isError || billing.isError || enterprise.isError;
@@ -152,6 +183,40 @@ export function AppHomePage() {
     },
   ];
 
+  const aiRecommendations = [
+    {
+      title: 'Start with today before opening modules',
+      explanation:
+        'Today combines due work, calendar follow-ups, finance pressure, and blocked delivery signals.',
+      route: '/app/today',
+      action: 'Open Today',
+    },
+    {
+      title: 'Review revenue and outstanding invoices',
+      explanation: analytics.data
+        ? `${formatMoney(analytics.data.outstandingInvoices)} is outstanding, so finance deserves a quick check.`
+        : 'Finance signals are still loading, but revenue review remains a high-value daily habit.',
+      route: '/app/finance',
+      action: 'Review finance',
+    },
+    {
+      title: 'Check projects before adding new work',
+      explanation: analytics.data
+        ? `${analytics.data.projectsAtRisk} projects are marked at risk across the workspace.`
+        : 'Project risk data is loading. Review active projects before committing new timelines.',
+      route: '/app/projects',
+      action: 'View projects',
+    },
+  ];
+
+  const toggleWidget = (id: string) => {
+    setCollapsedWidgets((current) => {
+      const next = { ...current, [id]: !current[id] };
+      localStorage.setItem('mikyasos:dashboard-collapsed-widgets', JSON.stringify(next));
+      return next;
+    });
+  };
+
   useEffect(() => {
     if (!currentOrganisation?.id || trackedOrganisationRef.current === currentOrganisation.id) {
       return;
@@ -170,10 +235,10 @@ export function AppHomePage() {
       <div className="premium-section project-ai-card overflow-hidden p-5 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="status-pill status-pill-success">
+            <StatusBadge tone="success" status="active">
               <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
               {currentOrganisation?.name ?? 'Workspace'}
-            </p>
+            </StatusBadge>
             <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
               Mission Control
             </h2>
@@ -209,17 +274,7 @@ export function AppHomePage() {
         </div>
       )}
 
-      {isDashboardLoading && (
-        <div className="grid gap-3 md:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, index) => (
-            <div key={index} className="premium-section p-4">
-              <div className="premium-shimmer h-3 w-24 rounded-full" />
-              <div className="premium-shimmer mt-4 h-7 w-20 rounded-full" />
-              <div className="premium-shimmer mt-4 h-3 w-full rounded-full" />
-            </div>
-          ))}
-        </div>
-      )}
+      {isDashboardLoading && <DashboardSkeleton />}
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {businessSignals.map((signal) => {
@@ -253,19 +308,18 @@ export function AppHomePage() {
         })}
       </div>
 
-      <section className="premium-section p-5">
-        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h3 className="font-semibold">The business operating layer</h3>
-            <p className="text-sm text-muted-foreground">
-              mikyasOS keeps people, work, knowledge, money, and intelligence connected in one
-              workspace.
-            </p>
-          </div>
+      <DashboardWidget
+        id="operatingLayer"
+        title="The business operating layer"
+        description="mikyasOS keeps people, work, knowledge, money, and intelligence connected in one workspace."
+        collapsed={Boolean(collapsedWidgets.operatingLayer)}
+        onToggle={toggleWidget}
+        action={
           <Button asChild variant="outline" size="sm">
             <Link to="/app/today">Open command centre</Link>
           </Button>
-        </div>
+        }
+      >
         <div className="mt-4 grid gap-3 md:grid-cols-5">
           {operatingPillars.map((pillar) => {
             const Icon = pillar.icon;
@@ -284,19 +338,17 @@ export function AppHomePage() {
             );
           })}
         </div>
-      </section>
+      </DashboardWidget>
 
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-        <section className="premium-section p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">Today's priorities</h3>
-              <p className="text-sm text-muted-foreground">
-                High-leverage actions surfaced before you go hunting.
-              </p>
-            </div>
-            <Target className="size-4 text-muted-foreground" aria-hidden="true" />
-          </div>
+        <DashboardWidget
+          id="priorities"
+          title="Today's priorities"
+          description="High-leverage actions surfaced before you go hunting."
+          collapsed={Boolean(collapsedWidgets.priorities)}
+          onToggle={toggleWidget}
+          icon={<Target className="size-4 text-muted-foreground" aria-hidden="true" />}
+        >
           <div className="mt-4 grid gap-3">
             {priorityItems.map((item) => {
               const Icon = item.icon;
@@ -323,18 +375,16 @@ export function AppHomePage() {
               );
             })}
           </div>
-        </section>
+        </DashboardWidget>
 
-        <section className="premium-section p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">Executive briefing</h3>
-              <p className="text-sm text-muted-foreground">
-                A grounded summary layer prepared for AI-assisted operations.
-              </p>
-            </div>
-            <Bot className="size-4 text-muted-foreground" aria-hidden="true" />
-          </div>
+        <DashboardWidget
+          id="briefing"
+          title="Executive briefing"
+          description="Grounded summary for AI-assisted operations."
+          collapsed={Boolean(collapsedWidgets.briefing)}
+          onToggle={toggleWidget}
+          icon={<Bot className="size-4 text-muted-foreground" aria-hidden="true" />}
+        >
           <div className="mt-4 rounded-md border border-border/80 bg-background/70 p-4">
             <p className="text-sm leading-6">
               {analytics.data?.aiExecutiveBriefing.note ??
@@ -346,11 +396,11 @@ export function AppHomePage() {
                   ? `${analytics.data.activity.documents} documents`
                   : 'Grounded context'}
               </span>
-              <span className="status-pill status-pill-success">
+              <StatusBadge tone="success" status="active">
                 {analytics.data
                   ? `${analytics.data.activity.workflows} workflows`
                   : 'No blocked modules'}
-              </span>
+              </StatusBadge>
             </div>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild size="sm">
@@ -361,20 +411,45 @@ export function AppHomePage() {
               </Button>
             </div>
           </div>
-        </section>
+        </DashboardWidget>
       </div>
 
+      <DashboardWidget
+        id="aiActions"
+        title="AI recommendations"
+        description="Decision support with explanation and safe next actions."
+        collapsed={Boolean(collapsedWidgets.aiActions)}
+        onToggle={toggleWidget}
+        icon={<Sparkles className="size-4 text-muted-foreground" aria-hidden="true" />}
+      >
+        <div className="mt-4 grid gap-3 lg:grid-cols-3">
+          {aiRecommendations.map((recommendation) => (
+            <EnterpriseCard
+              key={recommendation.title}
+              title={recommendation.title}
+              description={recommendation.explanation}
+              icon={Sparkles}
+              accentClassName="module-accent-ai"
+              badge={<StatusBadge tone="ai">Recommended</StatusBadge>}
+              actions={
+                <Button asChild size="sm" variant="outline">
+                  <Link to={recommendation.route}>{recommendation.action}</Link>
+                </Button>
+              }
+            />
+          ))}
+        </div>
+      </DashboardWidget>
+
       <div className="grid gap-6 xl:grid-cols-[1.4fr_0.8fr]">
-        <section className="premium-section p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">Pinned apps</h3>
-              <p className="text-sm text-muted-foreground">
-                Fast access to the surfaces people use every day.
-              </p>
-            </div>
-            <Star className="size-4 text-muted-foreground" aria-hidden="true" />
-          </div>
+        <DashboardWidget
+          id="pinnedApps"
+          title="Pinned apps"
+          description="Fast access to the surfaces people use every day."
+          collapsed={Boolean(collapsedWidgets.pinnedApps)}
+          onToggle={toggleWidget}
+          icon={<Star className="size-4 text-muted-foreground" aria-hidden="true" />}
+        >
           <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {pinnedApps.map((item) => {
               const Icon = item.icon;
@@ -399,18 +474,16 @@ export function AppHomePage() {
               );
             })}
           </div>
-        </section>
+        </DashboardWidget>
 
-        <section className="premium-section p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">Company health</h3>
-              <p className="text-sm text-muted-foreground">
-                Enterprise signals for operating confidence.
-              </p>
-            </div>
-            <HeartPulse className="size-4 text-muted-foreground" aria-hidden="true" />
-          </div>
+        <DashboardWidget
+          id="health"
+          title="Company health"
+          description="Enterprise signals for operating confidence."
+          collapsed={Boolean(collapsedWidgets.health)}
+          onToggle={toggleWidget}
+          icon={<HeartPulse className="size-4 text-muted-foreground" aria-hidden="true" />}
+        >
           <div className="mt-4 grid gap-3">
             <HealthRow
               label="Identity"
@@ -434,20 +507,19 @@ export function AppHomePage() {
               muted
             />
           </div>
-        </section>
+        </DashboardWidget>
       </div>
 
       <div className="grid gap-6 xl:grid-cols-3">
-        <section className="premium-section p-5 xl:col-span-2">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h3 className="font-semibold">Recent activity</h3>
-              <p className="text-sm text-muted-foreground">
-                Important workspace events, grouped for quick scanning.
-              </p>
-            </div>
-            <Clock3 className="size-4 text-muted-foreground" aria-hidden="true" />
-          </div>
+        <DashboardWidget
+          id="activity"
+          title="Recent activity"
+          description="Important workspace events, grouped for quick scanning."
+          collapsed={Boolean(collapsedWidgets.activity)}
+          onToggle={toggleWidget}
+          icon={<Clock3 className="size-4 text-muted-foreground" aria-hidden="true" />}
+          className="xl:col-span-2"
+        >
           <div className="mt-4 grid gap-3">
             {notifications.map((notification) => (
               <div key={notification.id} className="premium-muted-panel flex gap-3 px-3 py-3">
@@ -462,7 +534,7 @@ export function AppHomePage() {
               </div>
             ))}
           </div>
-        </section>
+        </DashboardWidget>
 
         <section className="premium-section project-ai-card p-5">
           <div className="relative grid size-10 place-items-center rounded-md border border-border bg-background shadow-sm">
@@ -488,16 +560,14 @@ export function AppHomePage() {
         </section>
       </div>
 
-      <section className="premium-section p-5">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h3 className="font-semibold">Operational timeline</h3>
-            <p className="text-sm text-muted-foreground">
-              Upcoming moments that keep the organisation aligned.
-            </p>
-          </div>
-          <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
-        </div>
+      <DashboardWidget
+        id="timeline"
+        title="Operational timeline"
+        description="Upcoming moments that keep the organisation aligned."
+        collapsed={Boolean(collapsedWidgets.timeline)}
+        onToggle={toggleWidget}
+        icon={<CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />}
+      >
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {operationalTimeline.map(([route, time, detail]) => (
             <Link
@@ -518,7 +588,65 @@ export function AppHomePage() {
             </Link>
           ))}
         </div>
-      </section>
+      </DashboardWidget>
+    </section>
+  );
+}
+
+function DashboardWidget({
+  id,
+  title,
+  description,
+  collapsed,
+  onToggle,
+  icon,
+  action,
+  className,
+  children,
+}: {
+  id: string;
+  title: string;
+  description: string;
+  collapsed: boolean;
+  onToggle: (id: string) => void;
+  icon?: ReactNode;
+  action?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={cn('premium-section p-5', className)}>
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          {action}
+          {icon}
+          <motion.div {...feedbackPress}>
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label={`${collapsed ? 'Expand' : 'Collapse'} ${title}`}
+              aria-expanded={!collapsed}
+              onClick={() => onToggle(id)}
+            >
+              <ChevronDown
+                className={cn('size-4 transition-transform', collapsed && '-rotate-90')}
+                aria-hidden="true"
+              />
+            </Button>
+          </motion.div>
+        </div>
+      </div>
+      <AnimatePresence initial={false}>
+        {!collapsed && (
+          <motion.div {...widgetReveal} className="overflow-hidden">
+            {children}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   );
 }
