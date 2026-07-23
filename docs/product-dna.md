@@ -79,3 +79,5 @@ If any answer is no, improve the solution before implementation.
 - [Motion Language](./motion-language.md)
 - [Enterprise Components](./enterprise-components.md)
 - [AI Experience](./ai-experience.md)
+- [Enterprise Architecture](./enterprise-architecture.md)
+- [Reliability, Quality, And Performance](./reliability-quality-performance.md)

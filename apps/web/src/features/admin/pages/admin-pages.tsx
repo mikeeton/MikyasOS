@@ -6,8 +6,13 @@ import {
   Archive,
   BadgeCheck,
   Building2,
+  Clock3,
+  Database,
   Gauge,
+  GitBranch,
   Lock,
+  MapPin,
+  Network,
   ServerCog,
   ShieldCheck,
   Siren,
@@ -21,6 +26,8 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { EnterpriseCard } from '@/components/ui/enterprise-card';
+import { StatusBadge } from '@/components/ui/status-badge';
 import { enterpriseApi, identityApi, type AdminRecord } from '@/api/client';
 import { useWorkspace } from '@/features/workspace/hooks/use-workspace';
 import { useAuthStore } from '@/stores/auth-store';
@@ -84,7 +91,39 @@ const permissionActions = [
   'Export',
   'Import',
   'Assign',
+  'Archive',
+  'Restore',
   'Manage',
+  'Configure',
+  'Delegate',
+  'Share',
+  'Run AI',
+  'Run Automation',
+] as const;
+
+const dataScopes = [
+  'Own records',
+  'Team records',
+  'Department records',
+  'Business unit records',
+  'Organisation records',
+  'Global records',
+] as const;
+
+const abacAttributes = [
+  'Organisation',
+  'Department',
+  'Business unit',
+  'Region',
+  'Project ownership',
+  'Customer ownership',
+  'Employment status',
+  'Security clearance',
+  'Document classification',
+  'Team membership',
+  'Location',
+  'Time restrictions',
+  'Device trust',
 ] as const;
 
 const roleTemplates = [
@@ -257,6 +296,131 @@ export function AdminDashboardPage() {
           hint="Reliability command centre status."
         />
       </div>
+      <section className="grid gap-4 lg:grid-cols-3">
+        <EnterpriseCard
+          title="Tenant isolation"
+          description="Every enterprise query is scoped by organisation before business data is exposed."
+          icon={ShieldCheck}
+          accentClassName="module-accent-admin"
+          badge={
+            <StatusBadge tone="success" status="active">
+              Protected
+            </StatusBadge>
+          }
+        />
+        <EnterpriseCard
+          title="Hierarchy ready"
+          description="Parent organisations, business units, departments, teams, and delegated administration are represented in the admin model."
+          icon={GitBranch}
+          accentClassName="module-accent-admin"
+          badge={<StatusBadge tone="info">Flexible</StatusBadge>}
+        />
+        <EnterpriseCard
+          title="Audit-first governance"
+          description="Role changes, invitations, policy changes, AI actions, exports, and security events are designed to produce audit records."
+          icon={Database}
+          accentClassName="module-accent-admin"
+          badge={<StatusBadge tone="ai">Traceable</StatusBadge>}
+        />
+      </section>
+    </AdminShell>
+  );
+}
+
+export function AdminOrganisationsPage() {
+  const { currentOrganisation, organisations } = useWorkspace();
+
+  const hierarchy = [
+    {
+      title: currentOrganisation?.name ?? 'Current organisation',
+      description:
+        'Highest ownership boundary for users, data, billing, storage, AI memory, and audit.',
+      icon: Building2,
+      badge: 'Organisation',
+    },
+    {
+      title: 'Business units',
+      description: 'Independent dashboards, budgets, reports, permissions, and AI memory scope.',
+      icon: GitBranch,
+      badge: 'Next layer',
+    },
+    {
+      title: 'Departments',
+      description:
+        'Finance, Engineering, Sales, Support, Operations, HR, Legal, Security, and custom departments.',
+      icon: Network,
+      badge: 'Flexible',
+    },
+    {
+      title: 'Teams',
+      description:
+        'Users may belong to multiple teams for delivery, permissions, notifications, and collaboration.',
+      icon: UsersRound,
+      badge: 'Many-to-many',
+    },
+  ];
+
+  return (
+    <AdminShell
+      title="Organisation hierarchy"
+      description="Manage the highest ownership boundary, hierarchy, tenant isolation, branding, business units, departments, teams, and delegated administration."
+    >
+      <div className="grid gap-4 md:grid-cols-3">
+        <StatCard
+          icon={Building2}
+          label="Organisations"
+          value={organisations.length}
+          hint="Tenant-visible organisations for the current user."
+        />
+        <StatCard
+          icon={ShieldCheck}
+          label="Isolation"
+          value="Mandatory"
+          hint="Business records remain scoped to one organisation."
+        />
+        <StatCard
+          icon={MapPin}
+          label="Data residency"
+          value="Policy"
+          hint="Prepared for regional controls and compliance settings."
+        />
+      </div>
+
+      <section className="grid gap-4 lg:grid-cols-4">
+        {hierarchy.map((item) => (
+          <EnterpriseCard
+            key={item.title}
+            title={item.title}
+            description={item.description}
+            icon={item.icon}
+            accentClassName="module-accent-admin"
+            badge={<StatusBadge tone="info">{item.badge}</StatusBadge>}
+          />
+        ))}
+      </section>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="font-semibold">Organisation branding and ownership</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Keep customer ownership without breaking the mikyasOS product identity.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            Tenant scoped
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          {['Logo and workspace icon', 'Theme and accent colours', 'Email and login branding'].map(
+            (item) => (
+              <div key={item} className="premium-muted-panel p-3 text-sm">
+                {item}
+              </div>
+            ),
+          )}
+        </div>
+      </section>
     </AdminShell>
   );
 }
@@ -404,6 +568,18 @@ export function AdminUsersPage() {
               </div>
             </div>
           </article>
+          <div className="mt-4 grid gap-3 md:grid-cols-3">
+            {[
+              ['Department', 'Unassigned'],
+              ['Manager', 'Not configured'],
+              ['Timezone', Intl.DateTimeFormat().resolvedOptions().timeZone],
+            ].map(([label, value]) => (
+              <div key={label} className="premium-muted-panel p-3">
+                <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+                <p className="mt-2 text-sm font-medium">{value}</p>
+              </div>
+            ))}
+          </div>
         </section>
 
         <aside className="grid content-start gap-4">
@@ -434,6 +610,49 @@ export function AdminUsersPage() {
           ))}
         </aside>
       </div>
+
+      <section className="grid gap-4 lg:grid-cols-3">
+        <EnterpriseCard
+          title="Session management"
+          description="Review current session, recent devices, IP, country, browser, operating system, and last activity before terminating access."
+          icon={Clock3}
+          accentClassName="module-accent-admin"
+          badge={
+            <StatusBadge tone="success" status="active">
+              Audited
+            </StatusBadge>
+          }
+          actions={
+            <Button size="sm" variant="outline">
+              View sessions
+            </Button>
+          }
+        />
+        <EnterpriseCard
+          title="Device trust"
+          description="Trusted-device and suspicious-activity signals prepare safer access decisions for enterprise administrators."
+          icon={ShieldCheck}
+          accentClassName="module-accent-admin"
+          badge={<StatusBadge tone="info">Risk aware</StatusBadge>}
+          actions={
+            <Button size="sm" variant="outline">
+              Review devices
+            </Button>
+          }
+        />
+        <EnterpriseCard
+          title="Bulk administration"
+          description="CSV import/export, bulk invite, bulk role assignment, and deactivation workflows require confirmation and audit logs."
+          icon={MailPlus}
+          accentClassName="module-accent-admin"
+          badge={<StatusBadge tone="warning">Confirm first</StatusBadge>}
+          actions={
+            <Button size="sm" variant="outline">
+              Prepare import
+            </Button>
+          }
+        />
+      </section>
     </AdminShell>
   );
 }
@@ -521,6 +740,58 @@ export function AdminRolesPage() {
           </table>
         </div>
       </section>
+
+      <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
+        <section className="premium-card p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">Data scopes</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Visibility should scale from personal work to global administration.
+              </p>
+            </div>
+            <StatusBadge tone="info">Scope-aware</StatusBadge>
+          </div>
+          <div className="mt-4 grid gap-2">
+            {dataScopes.map((scope) => (
+              <div
+                key={scope}
+                className="premium-muted-panel flex items-center justify-between px-3 py-2 text-sm"
+              >
+                <span>{scope}</span>
+                <StatusBadge
+                  tone={scope === 'Global records' ? 'warning' : 'neutral'}
+                  showIcon={false}
+                >
+                  {scope === 'Global records' ? 'Elevated' : 'Available'}
+                </StatusBadge>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="premium-card p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="font-semibold">ABAC attributes</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Attribute rules prepare secure access beyond static roles.
+              </p>
+            </div>
+            <StatusBadge tone="ai">Policy engine</StatusBadge>
+          </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {abacAttributes.map((attribute) => (
+              <span
+                key={attribute}
+                className="rounded-full border bg-background/70 px-3 py-1 text-xs"
+              >
+                {attribute}
+              </span>
+            ))}
+          </div>
+        </section>
+      </div>
 
       <Records
         title="Custom roles"

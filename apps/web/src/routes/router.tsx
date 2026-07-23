@@ -424,6 +424,11 @@ const BusinessUnitsPage = lazy(() =>
     default: module.BusinessUnitsPage,
   })),
 );
+const AdminOrganisationsPage = lazy(() =>
+  import('@/features/admin/pages/admin-pages').then((module) => ({
+    default: module.AdminOrganisationsPage,
+  })),
+);
 const AdminRolesPage = lazy(() =>
   import('@/features/admin/pages/admin-pages').then((module) => ({
     default: module.AdminRolesPage,
@@ -457,11 +462,6 @@ const ComplianceDashboardPage = lazy(() =>
 const LicensingPage = lazy(() =>
   import('@/features/admin/pages/admin-pages').then((module) => ({
     default: module.LicensingPage,
-  })),
-);
-const AdminPlaceholderPage = lazy(() =>
-  import('@/features/admin/pages/admin-pages').then((module) => ({
-    default: module.AdminPlaceholderPage,
   })),
 );
 const PlatformDashboardPage = lazy(() =>
@@ -1084,7 +1084,7 @@ export const router = createBrowserRouter([
           },
           {
             path: 'admin/organisations',
-            element: withSuspense(<AdminPlaceholderPage title="Organisation hierarchy" />),
+            element: withSuspense(<AdminOrganisationsPage />),
           },
           {
             path: 'admin/business-units',
