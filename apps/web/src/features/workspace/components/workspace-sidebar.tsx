@@ -30,7 +30,7 @@ export function WorkspaceSidebar() {
         animate={{ width: collapsed ? 76 : 272 }}
         transition={reduceMotion ? { duration: 0 } : premiumSpring}
         className={cn(
-          'premium-surface relative z-20 hidden min-h-screen border-r lg:sticky lg:top-0 lg:block',
+          'premium-surface relative z-20 hidden min-h-screen border-r bg-background/94 lg:sticky lg:top-0 lg:block',
         )}
       >
         <SidebarContent collapsed={collapsed} onToggleCollapsed={() => setCollapsed((v) => !v)} />
@@ -123,7 +123,7 @@ function SidebarContent({
           <OrganisationSwitcher compact />
         </div>
       )}
-      <nav className="mt-6 grid gap-1.5" aria-label="Workspace navigation">
+      <nav className="mt-6 grid gap-1" aria-label="Workspace navigation">
         {workspaceNavigation.map((item) => {
           const Icon = item.icon;
           const isActive =
@@ -168,10 +168,10 @@ function SidebarContent({
               onClick={onCloseMobile}
               className={({ isActive: routerActive }) =>
                 cn(
-                  'premium-interactive group relative flex h-10 items-center gap-3 overflow-hidden rounded-md px-3 text-sm hover:bg-accent hover:text-foreground',
+                  'premium-interactive group relative flex h-10 items-center gap-3 overflow-hidden rounded-md px-3 text-sm hover:bg-accent/80 hover:text-foreground',
                   collapsed && 'justify-center px-0',
                   (routerActive || isActive) &&
-                    'border border-border/80 bg-accent/88 text-foreground shadow-sm',
+                    'border border-foreground/10 bg-foreground/[0.055] text-foreground shadow-sm',
                   !(routerActive || isActive) && 'text-muted-foreground',
                 )
               }
@@ -181,7 +181,7 @@ function SidebarContent({
               {isActive && (
                 <motion.span
                   layoutId="workspace-active-indicator"
-                  className="absolute left-0 top-1/2 h-5 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_18px_hsl(var(--primary)/0.35)]"
+                  className="absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-primary shadow-[0_0_18px_hsl(var(--primary)/0.28)]"
                   transition={premiumSpring}
                 />
               )}
@@ -197,11 +197,11 @@ function SidebarContent({
         ) : (
           <>
             <div className="flex items-center justify-between gap-2">
-              <p className="text-xs font-medium">AI briefing</p>
-              <span className="status-pill status-pill-info px-2 py-0.5 text-[10px]">Soon</span>
+              <p className="text-xs font-medium">Today focus</p>
+              <span className="status-pill status-pill-info px-2 py-0.5 text-[10px]">Live</span>
             </div>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              Placeholder ready for future intelligence modules.
+              Open your command centre for meetings, due work, follow-ups, and next actions.
             </p>
           </>
         )}

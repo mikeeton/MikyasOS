@@ -87,6 +87,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     min-width: 320px;
+    min-height: 100vh;
     font-feature-settings:
       'rlig' 1,
       'calt' 1;
@@ -108,6 +109,40 @@
   select {
     text-rendering: geometricPrecision;
   }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  input,
+  select,
+  textarea {
+    color-scheme: light dark;
+  }
+
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    border: 3px solid transparent;
+    border-radius: 999px;
+    background-clip: padding-box;
+    background-color: hsl(var(--foreground) / 0.18);
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--foreground) / 0.28);
+  }
 }
 
 @layer components {
@@ -123,8 +158,8 @@
     position: relative;
     overflow-x: clip;
     background:
-      radial-gradient(circle at top left, hsl(var(--primary) / 0.09), transparent 34rem),
-      radial-gradient(circle at 80% 10%, hsl(217 91% 60% / 0.08), transparent 28rem),
+      radial-gradient(circle at top left, hsl(var(--primary) / 0.055), transparent 34rem),
+      radial-gradient(circle at 80% 10%, hsl(217 91% 60% / 0.045), transparent 28rem),
       linear-gradient(180deg, hsl(var(--background)), hsl(var(--muted) / 0.32));
   }
 
@@ -135,17 +170,17 @@
     inset: -20% -10% auto;
     height: 28rem;
     background:
-      radial-gradient(circle, hsl(var(--primary) / 0.12), transparent 42%),
-      radial-gradient(circle at 70% 30%, hsl(199 89% 48% / 0.1), transparent 36%);
+      radial-gradient(circle, hsl(var(--primary) / 0.07), transparent 42%),
+      radial-gradient(circle at 70% 30%, hsl(199 89% 48% / 0.055), transparent 36%);
     filter: blur(48px);
-    opacity: 0.7;
+    opacity: 0.62;
     transform: translate3d(0, 0, 0);
     animation: mikyas-ambient 18s ease-in-out infinite alternate;
   }
 
   .premium-surface {
     @apply border border-border shadow-sm backdrop-blur-xl;
-    background-color: hsl(var(--background) / 0.82);
+    background-color: hsl(var(--background) / 0.88);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.05) inset,
       0 18px 60px hsl(240 10% 3.9% / 0.08);
@@ -161,7 +196,7 @@
 
   .premium-card {
     @apply rounded-md border border-border shadow-sm backdrop-blur-xl transition-[border-color,background,box-shadow,transform] duration-300;
-    background-color: hsl(var(--background) / 0.88);
+    background-color: hsl(var(--background) / 0.92);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.04) inset,
       0 14px 42px hsl(240 10% 3.9% / 0.07);
@@ -169,15 +204,14 @@
 
   .premium-card:hover {
     border-color: hsl(var(--foreground) / 0.16);
-    transform: translateY(-2px);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.06) inset,
-      0 22px 70px hsl(240 10% 3.9% / 0.12);
+      0 20px 58px hsl(240 10% 3.9% / 0.1);
   }
 
   .premium-glass {
     @apply border border-border/80 shadow-2xl backdrop-blur-2xl;
-    background-color: hsl(var(--background) / 0.68);
+    background-color: hsl(var(--background) / 0.82);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.08) inset,
       0 24px 80px hsl(240 10% 3.9% / 0.18);
@@ -203,7 +237,7 @@
   }
 
   .premium-interactive {
-    @apply premium-focus transition-[border-color,background,box-shadow,color,transform] duration-200 motion-safe:hover:-translate-y-0.5;
+    @apply premium-focus transition-[border-color,background,box-shadow,color,transform] duration-200;
   }
 
   .premium-page {
@@ -212,7 +246,7 @@
 
   .premium-section {
     @apply rounded-md border border-border/80 shadow-sm backdrop-blur-xl;
-    background: hsl(var(--background) / 0.82);
+    background: hsl(var(--background) / 0.9);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.04) inset,
       0 18px 60px hsl(240 10% 3.9% / 0.06);
@@ -342,12 +376,12 @@
   }
 
   .premium-list-link {
-    @apply premium-interactive rounded-md border border-border/80 bg-background/70;
+    @apply premium-interactive rounded-md border border-border/80 bg-background/80;
     box-shadow: 0 1px 0 hsl(var(--foreground) / 0.04) inset;
   }
 
   .premium-list-link:hover {
-    @apply bg-accent;
+    background: hsl(var(--accent) / 0.62);
     border-color: hsl(var(--foreground) / 0.16);
     box-shadow:
       0 1px 0 hsl(var(--foreground) / 0.06) inset,
@@ -403,7 +437,7 @@
   }
 
   .premium-input {
-    @apply premium-focus h-10 rounded-md border border-input bg-background/70 px-3 text-sm transition-[border-color,background,box-shadow];
+    @apply premium-focus min-h-10 rounded-md border border-input bg-background/80 px-3 text-sm transition-[border-color,background,box-shadow];
   }
 
   .premium-input:focus {
@@ -577,6 +611,33 @@
       linear-gradient(hsl(var(--border) / 0.55) 1px, transparent 1px),
       linear-gradient(90deg, hsl(var(--border) / 0.55) 1px, transparent 1px);
     background-size: 32px 32px;
+  }
+
+  .premium-action-strip {
+    @apply flex flex-wrap items-center gap-1 border-t border-border/70 bg-muted/20 px-3 py-2;
+  }
+
+  .premium-soft-button {
+    @apply premium-focus inline-flex min-h-8 items-center rounded-md px-2.5 py-1 text-xs font-medium text-muted-foreground transition hover:bg-accent hover:text-foreground;
+  }
+
+  .premium-danger-button {
+    @apply premium-soft-button hover:bg-destructive/10 hover:text-destructive;
+  }
+
+  .premium-popover {
+    max-height: min(42rem, calc(100vh - 5.5rem));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
   }
 }
 

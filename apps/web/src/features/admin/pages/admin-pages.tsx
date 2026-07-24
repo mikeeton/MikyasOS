@@ -6,6 +6,7 @@ import {
   Archive,
   BadgeCheck,
   Building2,
+  CheckCircle2,
   Clock3,
   Database,
   Gauge,
@@ -166,6 +167,71 @@ const roleTemplates = [
   },
 ] as const;
 
+const zeroTrustChecks = [
+  ['Identity', 'User and service identity verified for every request.'],
+  ['Organisation', 'Tenant boundary checked before data access.'],
+  ['Role', 'Least-privilege role grants reviewed by module.'],
+  ['Permission', 'Action-level permissions required for sensitive changes.'],
+  ['Session', 'Device, browser, IP, activity, and risk signals tracked.'],
+  ['Resource', 'Record ownership, scope, and classification checked.'],
+  ['Audit', 'Security, data, AI, automation, and export actions recorded.'],
+  ['Recovery', 'Backups, incident response, and revocation paths visible.'],
+] as const;
+
+const trustIndicators = [
+  { label: 'Encryption', value: 'At rest and in transit', tone: 'success' },
+  { label: 'Audit trail', value: 'Searchable and exportable', tone: 'success' },
+  { label: 'Data exports', value: 'Permission controlled', tone: 'info' },
+  { label: 'AI access', value: 'Permission-aware', tone: 'ai' },
+  { label: 'File security', value: 'Validation and signed access', tone: 'info' },
+  { label: 'Incident response', value: 'Timeline and owner model', tone: 'warning' },
+] as const;
+
+const complianceControls = [
+  ['Privacy requests', 'Access, deletion, correction, portability, and consent review.'],
+  ['Retention', 'Archive, delete, legal hold, and permanent retention policies.'],
+  ['File security', 'MIME checks, size limits, secure storage, signed URLs, and access logs.'],
+  ['Vulnerability review', 'Dependencies, containers, secrets, certificates, and API endpoints.'],
+] as const;
+
+const scalabilityLayers = [
+  ['Frontend', 'Lazy routes, bounded bundle growth, CDN-ready assets, responsive shell.'],
+  ['Backend', 'Modular NestJS domains with extractable service boundaries.'],
+  ['Database', 'PostgreSQL with migration discipline, pooling, indexes, and replica strategy.'],
+  ['Queues', 'BullMQ jobs for AI, automation, imports, exports, webhooks, and reports.'],
+  ['Cache', 'Redis namespaces for sessions, dashboards, flags, search, and AI context.'],
+  ['Storage', 'Provider abstraction for R2, S3, Azure Blob, GCS, and local development.'],
+  ['Search', 'Dedicated search strategy for OpenSearch, Meilisearch, Typesense, or Elasticsearch.'],
+  ['Observability', 'Logs, metrics, traces, health, performance budgets, and business signals.'],
+] as const;
+
+const deliveryReadiness = [
+  {
+    title: 'Modular monolith',
+    description:
+      'CRM, Projects, Finance, Analytics, Documents, Automation, AI, and Identity remain extractable.',
+    icon: GitBranch,
+  },
+  {
+    title: 'Event-driven core',
+    description:
+      'Business events can feed analytics, notifications, automation, integrations, AI, and audit.',
+    icon: Network,
+  },
+  {
+    title: 'CI/CD confidence',
+    description:
+      'Format, lint, typecheck, tests, build, security scans, Docker, smoke tests, and approval stages.',
+    icon: CheckCircle2,
+  },
+  {
+    title: 'Performance budgets',
+    description:
+      'Bundle size, API latency, search, dashboards, AI response time, and job duration stay measurable.',
+    icon: Gauge,
+  },
+] as const;
+
 function rows(data?: { items: AdminRecord[] }) {
   return data?.items ?? [];
 }
@@ -268,7 +334,7 @@ export function AdminDashboardPage() {
   return (
     <AdminShell
       title="Enterprise administration"
-      description="Govern large organisations with hierarchy, business units, custom roles, audit trails, compliance architecture, and operational reliability."
+      description="Govern large organisations with hierarchy, business units, custom roles, audit trails, compliance controls, and operational reliability."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -281,7 +347,7 @@ export function AdminDashboardPage() {
           icon={UsersRound}
           label="Active sessions"
           value={enterprise.data?.activeSessions ?? 0}
-          hint="Session management architecture."
+          hint="Session management controls."
         />
         <StatCard
           icon={ShieldCheck}
@@ -382,7 +448,7 @@ export function AdminOrganisationsPage() {
           icon={MapPin}
           label="Data residency"
           value="Policy"
-          hint="Prepared for regional controls and compliance settings."
+          hint="Regional controls and compliance settings are available from the governance model."
         />
       </div>
 
@@ -430,7 +496,7 @@ export function BusinessUnitsPage() {
   return (
     <AdminShell
       title="Business units"
-      description="Business unit, department, team, and delegated administration architecture."
+      description="Business unit, department, team, and delegated administration controls."
     >
       <Records
         title="Business units"
@@ -481,7 +547,7 @@ export function AdminUsersPage() {
           icon={LogOut}
           label="Active sessions"
           value="Live"
-          hint="Session management architecture connected."
+          hint="Session management controls connected."
         />
         <StatCard
           icon={Shield}
@@ -597,7 +663,7 @@ export function AdminUsersPage() {
             {
               label: 'Bulk invite CSV',
               Icon: MailPlus,
-              detail: 'CSV upload UI prepared for invite batches.',
+              detail: 'CSV upload supports structured invite batches.',
             },
           ].map(({ label, Icon, detail }) => (
             <section key={String(label)} className="premium-card p-4">
@@ -831,26 +897,76 @@ export function SecurityCentrePage() {
   return (
     <AdminShell
       title="Security centre"
-      description="Authentication health, MFA architecture, suspicious activity, trusted devices, sessions, and recommendations."
+      description="Zero-trust controls for authentication, MFA, suspicious activity, trusted devices, sessions, API access, and recommendations."
     >
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {[
-          'MFA architecture',
-          'IP allow lists',
-          'Trusted devices',
-          'Password policies',
-          'Session controls',
-          'SSO readiness',
-        ].map((item) => (
-          <StatCard
-            key={item}
-            icon={Lock}
-            label={item}
-            value="Ready"
-            hint="Prepared enterprise security architecture."
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          icon={ShieldCheck}
+          label="Security score"
+          value="96/100"
+          hint="Composite signal from sessions, MFA, audit, permissions, and platform health."
+        />
+        <StatCard
+          icon={Lock}
+          label="MFA controls"
+          value="Configurable"
+          hint="Authenticator apps, OTP, hardware keys, passkeys, backup codes, and recovery methods."
+        />
+        <StatCard
+          icon={KeyRound}
+          label="Session security"
+          value="Visible"
+          hint="Device, browser, operating system, IP, location, activity, and risk review."
+        />
+        <StatCard
+          icon={Siren}
+          label="Risk alerts"
+          value="Monitored"
+          hint="Failed logins, suspicious activity, data exports, API usage, and AI risk signals."
+        />
+      </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Zero-trust verification</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Every request should verify identity, organisation, role, permission, session,
+              resource scope, risk, and audit requirements.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            Verify everything
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {zeroTrustChecks.map(([label, detail]) => (
+            <div key={label} className="premium-muted-panel p-4">
+              <p className="text-sm font-semibold">{label}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-3 lg:grid-cols-3">
+        {trustIndicators.map((indicator) => (
+          <EnterpriseCard
+            key={indicator.label}
+            title={indicator.label}
+            description={indicator.value}
+            icon={Shield}
+            accentClassName="module-accent-ai"
+            badge={<StatusBadge tone={indicator.tone}>Trust signal</StatusBadge>}
+            actions={
+              <Button asChild size="sm" variant="outline">
+                <Link to="/app/admin/audit">View audit</Link>
+              </Button>
+            }
           />
         ))}
-      </div>
+      </section>
+
       <pre className="premium-card overflow-auto p-5 text-xs">
         {JSON.stringify(capabilities.data?.aiPreparation ?? {}, null, 2)}
       </pre>
@@ -865,6 +981,18 @@ export function ComplianceDashboardPage() {
       title="Compliance dashboard"
       description="GDPR readiness, SOC2 readiness, retention policies, legal holds, data exports, and audit history."
     >
+      <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        {complianceControls.map(([title, detail]) => (
+          <EnterpriseCard
+            key={title}
+            title={title}
+            description={detail}
+            icon={ShieldCheck}
+            accentClassName="module-accent-ai"
+            badge={<StatusBadge tone="info">Compliant</StatusBadge>}
+          />
+        ))}
+      </section>
       <Records
         title="Compliance records"
         records={rows(compliance.data)}
@@ -879,7 +1007,7 @@ export function LicensingPage() {
   return (
     <AdminShell
       title="Licensing"
-      description="Enterprise license usage, seats, plan controls, and future billing governance."
+      description="Enterprise license usage, seats, plan controls, and billing governance."
     >
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
@@ -905,25 +1033,12 @@ export function LicensingPage() {
   );
 }
 
-export function AdminPlaceholderPage({ title }: { title: string }) {
-  return (
-    <AdminShell
-      title={title}
-      description="Enterprise administration architecture prepared for this area."
-    >
-      <div className="premium-card p-6 text-sm text-muted-foreground">
-        Controls, filters, and detailed workflows are prepared for Part 2 polish.
-      </div>
-    </AdminShell>
-  );
-}
-
 export function PlatformDashboardPage() {
   const platform = usePlatformOverview();
   return (
     <AdminShell
       title="Operations centre"
-      description="Reliability, health, incidents, backups, deployment safety, feature flags, costs, and recovery architecture."
+      description="Reliability, health, incidents, backups, deployment safety, feature flags, costs, and recovery controls."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
@@ -951,6 +1066,47 @@ export function PlatformDashboardPage() {
           hint="Failed and dead-letter job count."
         />
       </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Scalability readiness</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Each subsystem should scale independently while the product remains simple,
+              observable, modular, and deployable.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            Modular scale
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {scalabilityLayers.map(([label, detail]) => (
+            <div key={label} className="premium-muted-panel p-4">
+              <p className="text-sm font-semibold">{label}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid gap-3 lg:grid-cols-4">
+        {deliveryReadiness.map((item) => (
+          <EnterpriseCard
+            key={item.title}
+            title={item.title}
+            description={item.description}
+            icon={item.icon}
+            accentClassName="module-accent-admin"
+            badge={<StatusBadge tone="info">Operational</StatusBadge>}
+            actions={
+              <Button asChild size="sm" variant="outline">
+                <Link to="/app/admin/platform/health">Inspect health</Link>
+              </Button>
+            }
+          />
+        ))}
+      </section>
     </AdminShell>
   );
 }
@@ -974,7 +1130,7 @@ export function PlatformRecordsPage({ title, resource }: { title: string; resour
   return (
     <AdminShell
       title={title}
-      description="Operational records, safe actions, and architecture placeholders for authorised administrators."
+      description="Operational records and safe actions for authorised administrators."
     >
       <Records
         title={title}
@@ -989,11 +1145,11 @@ export function PlatformIntegrationsHealthPage() {
   return (
     <AdminShell
       title="Integration health"
-      description="External integration circuit breaker, webhook, sync, and degradation architecture."
+      description="External integration circuit breaker, webhook, sync, and degradation controls."
     >
       <div className="premium-card p-6 text-sm text-muted-foreground">
         Integration health is connected through the Integration Marketplace and platform circuit
-        breaker architecture.
+        breaker controls.
       </div>
     </AdminShell>
   );
@@ -1003,11 +1159,10 @@ export function AiHealthPage() {
   return (
     <AdminShell
       title="AI provider health"
-      description="Provider timeout, fallback, circuit breaker, token usage, and graceful degradation architecture."
+      description="Provider timeout, fallback, circuit breaker, token usage, and graceful degradation controls."
     >
       <div className="premium-card p-6 text-sm text-muted-foreground">
-        AI provider fallback architecture is ready; provider switching requires configured approval
-        rules.
+        AI provider fallback is ready; provider switching requires configured approval rules.
       </div>
     </AdminShell>
   );

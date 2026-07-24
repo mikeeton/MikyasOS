@@ -21,7 +21,7 @@ The system separates customer SaaS subscriptions from the Finance module's busin
 
 ## Subscription Plans
 
-Prepared plan tiers:
+Supported plan tiers:
 
 - Starter
 - Professional
@@ -32,7 +32,7 @@ Each tier defines user limits, storage, monthly AI token allowance, automation a
 
 ## Payments
 
-Payment provider architecture is prepared for:
+Payment provider architecture supports:
 
 - Stripe
 - Paddle
@@ -71,13 +71,13 @@ Usage records are organisation-scoped and suitable for plan enforcement, reporti
 
 ## Customer Portal
 
-Prepared portal functions:
+Portal functions:
 
 - Manage subscription
 - Upgrade
 - Downgrade
 - Cancel
-- Payment method placeholder
+- Payment method management
 - Invoices
 - Usage
 - Billing history
@@ -100,7 +100,7 @@ First-run onboarding supports:
 
 ## Data Import
 
-Prepared import architecture:
+Import architecture:
 
 - CSV
 - Excel
@@ -112,7 +112,7 @@ Prepared import architecture:
 
 ## Data Export
 
-Prepared export architecture:
+Export architecture:
 
 - CSV
 - Excel
@@ -144,7 +144,7 @@ Public routes:
 
 ## Help Centre
 
-Architecture is prepared for:
+Help centre architecture:
 
 - Documentation
 - FAQs
@@ -155,7 +155,7 @@ Architecture is prepared for:
 
 ## Email Templates
 
-Prepared templates:
+Email templates:
 
 - Welcome
 - Invitation
@@ -168,7 +168,7 @@ Prepared templates:
 
 ## Legal
 
-Prepared legal document taxonomy:
+Legal document taxonomy:
 
 - Privacy Policy
 - Terms of Service

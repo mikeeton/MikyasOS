@@ -1,7 +1,5 @@
-import { Building2, Loader2, Plus } from 'lucide-react';
-import { Link } from 'react-router';
+import { Building2, Loader2 } from 'lucide-react';
 
-import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 import { useWorkspace } from '../hooks/use-workspace';
@@ -46,13 +44,6 @@ export function OrganisationSwitcher({ compact = false }: { compact?: boolean })
           </option>
         ))}
       </select>
-      {!compact && (
-        <Button asChild variant="outline" size="icon" aria-label="Create organisation">
-          <Link to="/organisations/new">
-            <Plus className="size-4" aria-hidden="true" />
-          </Link>
-        </Button>
-      )}
     </div>
   );
 }

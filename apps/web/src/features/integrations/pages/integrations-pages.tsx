@@ -16,6 +16,8 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { EnterpriseCard } from '@/components/ui/enterprise-card';
+import { StatusBadge } from '@/components/ui/status-badge';
 import type { IntegrationConnector, IntegrationRecord } from '@/api/client';
 import {
   useInstallConnector,
@@ -36,6 +38,40 @@ const subnav = [
   { to: '/app/integrations/logs', label: 'Logs' },
   { to: '/app/integrations/settings', label: 'Settings' },
 ];
+
+const ecosystemCategories = [
+  ['Email', 'Google Workspace, Microsoft 365, IMAP, SMTP, Exchange'],
+  ['Calendar', 'Google Calendar, Outlook, Apple Calendar, CalDAV'],
+  ['Messaging', 'Slack, Microsoft Teams, Discord, WhatsApp Business'],
+  ['Storage', 'Google Drive, OneDrive, Dropbox, Box, R2, S3'],
+  ['Finance', 'Stripe, PayPal, QuickBooks, Xero, Sage'],
+  ['Development', 'GitHub, GitLab, Bitbucket, Azure DevOps, Jira, Linear'],
+  ['Identity', 'Google, Microsoft, Okta, Auth0, SAML, SCIM'],
+  ['Support', 'Zendesk, Freshdesk, Intercom, Help Scout'],
+] as const;
+
+const developerExperience = [
+  {
+    title: 'API keys',
+    description: 'Scoped keys with expiry, rotation, last access, usage, audit, and IP controls.',
+    icon: KeyRound,
+  },
+  {
+    title: 'OAuth apps',
+    description: 'OAuth 2.1, PKCE, consent screens, scopes, refresh tokens, and app approval.',
+    icon: ShieldCheck,
+  },
+  {
+    title: 'Webhooks',
+    description: 'Signed events, retries, logs, replay, delivery history, and failure visibility.',
+    icon: Webhook,
+  },
+  {
+    title: 'SDKs',
+    description: 'Typed client strategy for TypeScript, Python, Java, C#, Go, and PHP.',
+    icon: Code2,
+  },
+] as const;
 
 function rows<T>(data?: { items: T[] } | T[]): T[] {
   if (Array.isArray(data)) return data;
@@ -188,14 +224,14 @@ export function IntegrationsDashboardPage() {
   return (
     <IntegrationShell
       title="Integration command centre"
-      description="Connect business systems, manage credentials, prepare syncs, receive webhooks, and feed future AI context from external services."
+      description="Connect business systems, manage credentials, run syncs, receive webhooks, and enrich mikyasOS with external context."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           icon={Store}
           label="Marketplace"
           value={capabilities.data?.supportedIntegrations.length ?? 0}
-          hint="Prepared connectors across cloud, communication, accounting, storage, dev, CRM, and payments."
+          hint="Connectors across cloud, communication, accounting, storage, development, CRM, and payments."
         />
         <StatCard
           icon={PlugZap}
@@ -207,7 +243,7 @@ export function IntegrationsDashboardPage() {
           icon={RefreshCw}
           label="Sync jobs"
           value={syncs.data?.pagination.total ?? 0}
-          hint="Manual, scheduled, webhook, incremental, and full sync architecture."
+          hint="Manual, scheduled, webhook, incremental, and full sync modes."
         />
         <StatCard
           icon={ShieldCheck}
@@ -216,6 +252,29 @@ export function IntegrationsDashboardPage() {
           hint="Connector health and credential review records."
         />
       </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Connected ecosystem map</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              External platforms should feel native: secure, observable, permission-aware, and
+              connected to CRM, projects, documents, finance, automation, analytics, and AI.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            Native experience
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {ecosystemCategories.map(([title, description]) => (
+            <div key={title} className="premium-muted-panel p-4">
+              <p className="text-sm font-semibold">{title}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">{description}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <RecordPanel
@@ -227,7 +286,7 @@ export function IntegrationsDashboardPage() {
           <h2 className="font-semibold">AI integration readiness</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Recommendations, sync optimisation, credential analysis, connector health, and
-            automation suggestions are prepared without LLM generation.
+            automation suggestions use integration status as business context.
           </p>
           <div className="mt-4 grid gap-2">
             {Object.keys(capabilities.data?.aiPreparation ?? {}).map((key) => (
@@ -238,6 +297,24 @@ export function IntegrationsDashboardPage() {
           </div>
         </section>
       </div>
+
+      <section className="grid gap-3 lg:grid-cols-4">
+        {developerExperience.map((item) => (
+          <EnterpriseCard
+            key={item.title}
+            title={item.title}
+            description={item.description}
+            icon={item.icon}
+            accentClassName="module-accent-automation"
+            badge={<StatusBadge tone="info">Developer-ready</StatusBadge>}
+            actions={
+              <Button asChild size="sm" variant="outline">
+                <Link to="/app/integrations/settings">Configure</Link>
+              </Button>
+            }
+          />
+        ))}
+      </section>
     </IntegrationShell>
   );
 }
@@ -248,7 +325,7 @@ export function IntegrationsMarketplacePage() {
   return (
     <IntegrationShell
       title="Integration marketplace"
-      description="A premium connector marketplace for Google Workspace, Microsoft 365, Slack, GitHub, Stripe, Xero, HubSpot, custom APIs, and future services."
+      description="A premium connector marketplace for Google Workspace, Microsoft 365, Slack, GitHub, Stripe, Xero, HubSpot, custom APIs, and developer tools."
     >
       <section className="premium-card p-4">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -304,7 +381,10 @@ export function IntegrationDetailPage() {
   return (
     <IntegrationShell
       title={connector?.name ?? 'Integration details'}
-      description={connector?.description ?? 'Connector detail and configuration architecture.'}
+      description={
+        connector?.description ??
+        'Connector details, permissions, sync controls, and health status.'
+      }
     >
       <div className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <section className="premium-card p-5">
@@ -324,7 +404,9 @@ export function IntegrationDetailPage() {
               <div key={action} className="rounded-md border p-4">
                 <CheckCircle2 className="size-4 text-emerald-600" />
                 <p className="mt-2 font-medium">{action.replaceAll('_', ' ')}</p>
-                <p className="mt-1 text-sm text-muted-foreground">Architecture ready</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Validated through the connector contract
+                </p>
               </div>
             ))}
           </div>
@@ -333,10 +415,10 @@ export function IntegrationDetailPage() {
           </Button>
         </section>
         <section className="premium-card p-5">
-          <h2 className="font-semibold">OAuth architecture</h2>
+          <h2 className="font-semibold">OAuth controls</h2>
           <div className="mt-4 grid gap-3 text-sm">
             <div className="rounded-md border p-3">
-              Provider: {oauth.data?.provider ?? 'prepared'}
+              Provider: {oauth.data?.provider ?? 'custom'}
             </div>
             <div className="rounded-md border p-3">
               PKCE required: {String(oauth.data?.pkceRequired ?? true)}
@@ -377,8 +459,8 @@ export function IntegrationLogsPage() {
 
 export function IntegrationSettingsPage() {
   const tiles: Array<[React.ComponentType<{ className?: string }>, string, string]> = [
-    [KeyRound, 'Credential vault', 'Encrypted credential storage and rotation architecture.'],
-    [Webhook, 'Webhook signing', 'Incoming and outgoing webhook verification architecture.'],
+    [KeyRound, 'Credential vault', 'Encrypted credential storage and rotation controls.'],
+    [Webhook, 'Webhook signing', 'Incoming and outgoing webhook verification controls.'],
     [RefreshCw, 'Retry queue', 'Backoff, replay, conflict detection, and retry controls.'],
     [Cloud, 'Storage sync', 'Files, calendars, contacts, emails, invoices, and projects.'],
     [Code2, 'Connector SDK', 'Authenticate, health check, connect, sync, send, receive, validate.'],

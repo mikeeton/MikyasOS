@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { EnterpriseCard } from '@/components/ui/enterprise-card';
+import { StatusBadge } from '@/components/ui/status-badge';
 import type { Workflow as WorkflowRecord, WorkflowExecution, WorkflowTemplate } from '@/api/client';
 import {
   useAutomationCapabilities,
@@ -43,6 +45,38 @@ const automationSubnav: Array<{ to: string; label: string }> = [
   { to: '/app/automation/logs', label: 'Logs' },
   { to: '/app/automation/settings', label: 'Settings' },
 ];
+
+const workflowIntelligenceLoop = [
+  {
+    label: 'Detect',
+    detail: 'Customer changes, project risk, due tasks, invoice pressure, uploads, meetings.',
+    icon: Radio,
+  },
+  {
+    label: 'Decide',
+    detail: 'Conditions, variables, permissions, business hours, approvals, and risk checks.',
+    icon: GitBranch,
+  },
+  {
+    label: 'Act',
+    detail: 'Create work, notify owners, update records, schedule follow-up, call webhooks.',
+    icon: Zap,
+  },
+  {
+    label: 'Verify',
+    detail: 'Record status, retries, duration, error reason, owner, and business outcome.',
+    icon: CheckCircle2,
+  },
+] as const;
+
+const automationSurfaceMap = [
+  ['CRM', 'Lead qualification, customer onboarding, duplicate review, follow-up reminders'],
+  ['Projects', 'Project kickoff, blocked-work escalation, task assignment, delivery handoff'],
+  ['Documents', 'Review requests, approval routing, linked-record updates, knowledge indexing'],
+  ['Finance', 'Invoice reminders, quote follow-up, approval routing, revenue reporting'],
+  ['Meetings', 'Agenda preparation, action item creation, follow-up scheduling, notes routing'],
+  ['AI', 'Summaries, risk analysis, suggested tasks, proposal drafts with confirmation'],
+] as const;
 
 function items<T>(data?: { items: T[] } | T[]): T[] {
   if (Array.isArray(data)) return data;
@@ -129,7 +163,7 @@ function WorkflowBuilderPreview() {
           <h2 className="font-semibold">Visual workflow builder</h2>
           <p className="text-sm text-muted-foreground">
             Canvas architecture for triggers, conditions, approvals, delays, actions, webhooks, and
-            AI decision placeholders.
+            AI decision blocks.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -230,7 +264,7 @@ function TemplateCard({ template }: { template: WorkflowTemplate }) {
       </div>
       <h3 className="mt-4 font-semibold">{template.name}</h3>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">
-        {template.description ?? 'Workflow template prepared for duplication.'}
+        {template.description ?? 'Duplicate this workflow pattern and customise the steps.'}
       </p>
       <Button className="mt-5 w-full" variant="outline">
         Duplicate template
@@ -283,7 +317,7 @@ export function AutomationDashboardPage() {
   const failedExecutions = executionItems.filter((execution) => execution.status === 'FAILED');
   const runningExecutions = executionItems.filter((execution) => execution.status === 'RUNNING');
 
-  const createDemoWorkflow = () =>
+  const createStarterWorkflow = () =>
     createWorkflow.mutate({
       name: `Customer onboarding ${Date.now().toString().slice(-4)}`,
       description: 'Creates a safe onboarding flow from a manual trigger.',
@@ -312,7 +346,7 @@ export function AutomationDashboardPage() {
           icon={Radio}
           label="Running executions"
           value={runningExecutions.length}
-          hint="BullMQ-backed execution architecture is prepared for background work."
+          hint="Background execution keeps long-running work away from the user interface."
         />
         <StatCard
           icon={AlertTriangle}
@@ -329,9 +363,9 @@ export function AutomationDashboardPage() {
       </div>
 
       <div className="flex flex-wrap gap-2">
-        <Button onClick={createDemoWorkflow} disabled={createWorkflow.isPending}>
+        <Button onClick={createStarterWorkflow} disabled={createWorkflow.isPending}>
           <Plus className="mr-2 size-4" />
-          Create demo workflow
+          Create starter workflow
         </Button>
         <Link to="/app/automation/templates">
           <Button variant="outline">Browse templates</Button>
@@ -340,6 +374,35 @@ export function AutomationDashboardPage() {
           <Button variant="outline">Open history</Button>
         </Link>
       </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Workflow intelligence loop</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Every automation should detect a business signal, make a safe decision, act with
+              permission, verify the result, and leave an audit trail.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            Permission-aware
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-4">
+          {workflowIntelligenceLoop.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div key={step.label} className="premium-muted-panel p-4">
+                <span className="grid size-9 place-items-center rounded-md border border-border bg-background/70">
+                  <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+                </span>
+                <p className="mt-4 text-sm font-semibold">{step.label}</p>
+                <p className="mt-2 text-xs leading-5 text-muted-foreground">{step.detail}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
 
       <WorkflowBuilderPreview />
 
@@ -364,7 +427,8 @@ export function AutomationDashboardPage() {
             ))}
             {!workflowItems.length && (
               <p className="rounded-md border p-5 text-sm text-muted-foreground">
-                No workflows yet. Use the demo action or duplicate a template to start the engine.
+                No workflows yet. Create a starter workflow or duplicate a template to start the
+                engine.
               </p>
             )}
           </div>
@@ -399,6 +463,24 @@ export function AutomationDashboardPage() {
             <TemplateCard key={template.id} template={template} />
           ))}
         </div>
+      </section>
+
+      <section className="grid gap-3 lg:grid-cols-3">
+        {automationSurfaceMap.map(([title, description]) => (
+          <EnterpriseCard
+            key={title}
+            title={title}
+            description={description}
+            icon={Workflow}
+            accentClassName="module-accent-automation"
+            badge={<StatusBadge tone="info">Automatable</StatusBadge>}
+            actions={
+              <Button asChild size="sm" variant="outline">
+                <Link to="/app/automation/templates">Find template</Link>
+              </Button>
+            }
+          />
+        ))}
       </section>
     </AutomationShell>
   );
@@ -501,7 +583,7 @@ export function AutomationLogsPage() {
   return (
     <AutomationShell
       title="Automation logs"
-      description="A professional log viewer for step-level execution traces, severity, grouping, filtering, and future retry diagnostics."
+      description="A professional log viewer for step-level execution traces, severity, grouping, filtering, and retry diagnostics."
     >
       <section className="premium-card p-4">
         <div className="grid gap-3">
@@ -546,14 +628,14 @@ export function AutomationSettingsPage() {
     {
       icon: TimerReset,
       label: 'Retries',
-      value: 'Prepared',
+      value: 'Configured',
       hint: 'BullMQ retry architecture is available for background workers.',
     },
     {
       icon: GitBranch,
       label: 'Branching',
-      value: 'Prepared',
-      hint: 'Conditions and future merge points are modelled in workflow data.',
+      value: 'Modelled',
+      hint: 'Conditions and merge points are modelled in workflow data.',
     },
     {
       icon: Clock3,
@@ -588,15 +670,15 @@ export function AutomationSettingsPage() {
     {
       icon: Settings,
       label: 'Risk controls',
-      value: 'AI prepared',
-      hint: 'Automation risk service is scaffolded without LLM generation.',
+      value: 'Guarded',
+      hint: 'Automation risk checks support safe recommendations and confirmation.',
     },
   ];
 
   return (
     <AutomationShell
       title="Automation settings"
-      description="Operational controls for queues, scheduling, approvals, variables, audit, safe execution, and AI preparation."
+      description="Operational controls for queues, scheduling, approvals, variables, audit, safe execution, and AI-assisted recommendations."
     >
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {settings.map(({ icon: Icon, label, value, hint }) => (

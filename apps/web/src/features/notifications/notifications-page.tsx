@@ -82,7 +82,7 @@ export function NotificationsPage() {
             </p>
             <h1 className="mt-3 text-3xl font-semibold tracking-tight">Notification centre</h1>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Search, triage, archive, pin, delete, and inspect operational notifications across
+              Search, triage, archive, pin, delete, and inspect operational notifications from
               calendar, projects, finance, automation, security, and the workspace.
             </p>
           </div>
@@ -272,9 +272,12 @@ export function NotificationsPage() {
                     <li>Awaiting user action or archive.</li>
                   </ol>
                 </div>
-                <div className="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                  AI summary placeholder: notification summaries will use grounded workspace context
-                  when real AI execution is enabled.
+                <div className="rounded-md border bg-muted/25 p-4 text-sm text-muted-foreground">
+                  <p className="font-medium text-foreground">Suggested response</p>
+                  <p className="mt-1 leading-6">
+                    Open the linked record, clear the notification once handled, or pin it if it
+                    needs follow-up later.
+                  </p>
                 </div>
               </div>
             ) : (
@@ -330,10 +333,7 @@ function Action({
   return (
     <button
       type="button"
-      className={cn(
-        'premium-focus inline-flex items-center rounded-md px-2 py-1 text-xs text-muted-foreground hover:bg-accent hover:text-foreground',
-        danger && 'hover:bg-destructive/10 hover:text-destructive',
-      )}
+      className={cn(danger ? 'premium-danger-button' : 'premium-soft-button')}
       onClick={onClick}
     >
       {children}

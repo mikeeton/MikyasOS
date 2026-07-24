@@ -31,8 +31,8 @@ export function WorkspaceTopbar() {
 
   return (
     <>
-      <header className="premium-surface sticky top-0 z-20 border-b bg-background/78 supports-[backdrop-filter]:bg-background/72">
-        <div className="flex min-h-16 items-center gap-3 px-4 pl-20 sm:px-6 lg:pl-6">
+      <header className="premium-surface sticky top-0 z-20 border-b bg-background/88 supports-[backdrop-filter]:bg-background/82">
+        <div className="flex min-h-16 items-center gap-2 px-4 pl-20 sm:gap-3 sm:px-6 lg:pl-6">
           <div className="min-w-0 flex-1">
             <motion.div
               key={`${currentOrganisation?.id ?? 'org'}-${currentPage?.route ?? 'page'}`}
@@ -45,20 +45,22 @@ export function WorkspaceTopbar() {
               <span aria-hidden="true">/</span>
               <span className="truncate">{currentOrganisation?.name ?? 'Organisation'}</span>
             </motion.div>
-            <h1 className="truncate text-lg font-semibold tracking-tight">{currentPage?.title}</h1>
+            <h1 className="truncate text-lg font-semibold tracking-tight text-foreground">
+              {currentPage?.title}
+            </h1>
           </div>
           <button
             type="button"
-            className="premium-interactive hidden h-9 min-w-0 flex-1 max-w-xl items-center gap-2 rounded-md border border-input bg-background/70 px-3 text-left text-sm text-muted-foreground hover:max-w-2xl hover:bg-accent md:flex"
+            className="premium-interactive hidden h-9 min-w-0 flex-1 max-w-lg items-center gap-2 rounded-md border border-input bg-background/80 px-3 text-left text-sm text-muted-foreground hover:border-foreground/20 hover:bg-background md:flex"
             onClick={() => setSearchOpen(true)}
           >
             <Search className="size-4 shrink-0" aria-hidden="true" />
             <span className="truncate">Search workspace...</span>
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Button
               variant="outline"
-              className="hidden gap-2 bg-background/72 px-3 backdrop-blur xl:inline-flex"
+              className="hidden gap-2 bg-background/80 px-3 backdrop-blur 2xl:inline-flex"
               onClick={() => setCommandOpen(true)}
             >
               <Command className="size-4" aria-hidden="true" />
@@ -70,13 +72,13 @@ export function WorkspaceTopbar() {
             <Button
               variant="outline"
               size="icon"
-              className="bg-background/72 backdrop-blur md:hidden"
+              className="bg-background/80 backdrop-blur md:hidden"
               aria-label="Open search"
               onClick={() => setSearchOpen(true)}
             >
               <Search className="size-4" aria-hidden="true" />
             </Button>
-            <div className="hidden xl:block">
+            <div className="hidden 2xl:block">
               <OrganisationSwitcher />
             </div>
             <QuickCreateMenu />

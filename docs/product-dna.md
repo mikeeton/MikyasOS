@@ -73,6 +73,7 @@ If any answer is no, improve the solution before implementation.
 
 ## Related Standards
 
+- [mikyasOS Constitution](./mikyasos-constitution.md)
 - [Design Language](./design-language.md)
 - [UX And Information Architecture](./ux-information-architecture.md)
 - [Dashboard Mission Control](./dashboard-mission-control.md)
@@ -81,3 +82,10 @@ If any answer is no, improve the solution before implementation.
 - [AI Experience](./ai-experience.md)
 - [Enterprise Architecture](./enterprise-architecture.md)
 - [Reliability, Quality, And Performance](./reliability-quality-performance.md)
+- [Product Excellence](./product-excellence.md)
+- [Connected Business Ecosystem](./connected-business-ecosystem.md)
+- [Automation Intelligence](./automation-intelligence.md)
+- [Business Intelligence Decision Platform](./business-intelligence-decision-platform.md)
+- [Integration API Ecosystem](./integration-api-ecosystem.md)
+- [Security Privacy Trust](./security-privacy-trust.md)
+- [Scalability Infrastructure DevOps](./scalability-infrastructure-devops.md)

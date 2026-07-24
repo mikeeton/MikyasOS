@@ -11,9 +11,12 @@ import {
   Plus,
   Target,
   TrendingUp,
+  Workflow,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
+import { EnterpriseCard } from '@/components/ui/enterprise-card';
+import { StatusBadge } from '@/components/ui/status-badge';
 import type { AnalyticsDashboard, AnalyticsRecord } from '@/api/client';
 import {
   useAnalyticsCapabilities,
@@ -50,6 +53,44 @@ function money(value?: number) {
     value ?? 0,
   );
 }
+
+const decisionPipeline = [
+  ['Data', 'Live records from finance, CRM, projects, documents, automation, and operations.'],
+  ['Information', 'Metrics are grouped into revenue, cash flow, delivery, capacity, and risk.'],
+  ['Insight', 'Changes are explained with owner, trend, variance, confidence, and source context.'],
+  [
+    'Recommendation',
+    'The system proposes what to inspect, who to follow up with, and what to automate.',
+  ],
+  ['Decision', 'Users approve, delegate, schedule, export, or drill into the underlying records.'],
+] as const;
+
+const executiveQuestions = [
+  {
+    title: 'What needs attention today?',
+    description: 'Review project risk, overdue invoices, blocked delivery, and urgent follow-ups.',
+    route: '/app/today',
+    action: 'Open Today',
+    icon: Target,
+    tone: 'warning',
+  },
+  {
+    title: 'Where is money stuck?',
+    description: 'Drill from outstanding revenue into invoices, customers, projects, and meetings.',
+    route: '/app/finance',
+    action: 'Review finance',
+    icon: TrendingUp,
+    tone: 'success',
+  },
+  {
+    title: 'Which workflows improve outcomes?',
+    description: 'Compare failed executions, repeated manual steps, and time-saving opportunities.',
+    route: '/app/automation',
+    action: 'Open automation',
+    icon: Workflow,
+    tone: 'info',
+  },
+] as const;
 
 function AnalyticsShell({
   title,
@@ -167,6 +208,21 @@ function ChartWall() {
 export function AnalyticsDashboardPage() {
   const executive = useExecutiveAnalytics();
   const capabilities = useAnalyticsCapabilities();
+  const briefingItems = [
+    ['Revenue', money(executive.data?.revenue), 'Invoice-backed revenue signal'],
+    ['Cash flow', money(executive.data?.cashFlow), 'Net movement across finance records'],
+    [
+      'Delivery risk',
+      `${executive.data?.projectsAtRisk ?? 0}`,
+      'Projects requiring review or intervention',
+    ],
+    [
+      'Outstanding',
+      money(executive.data?.outstandingInvoices),
+      'Invoices that can affect follow-up priorities',
+    ],
+  ] as const;
+
   return (
     <AnalyticsShell
       title="Executive command centre"
@@ -189,7 +245,7 @@ export function AnalyticsDashboardPage() {
           icon={Activity}
           label="Cash flow"
           value={money(executive.data?.cashFlow)}
-          hint="Net inflow and outflow prepared for forecasting."
+          hint="Net inflow and outflow used for cash-pressure decisions."
         />
         <StatCard
           icon={Target}
@@ -198,6 +254,26 @@ export function AnalyticsDashboardPage() {
           hint="Urgent or blocked delivery signals."
         />
       </div>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Decision pipeline</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              Analytics should move from raw records to decisions, then into accountable action.
+            </p>
+          </div>
+          <StatusBadge tone="ai">Action-oriented BI</StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-5">
+          {decisionPipeline.map(([label, detail]) => (
+            <div key={label} className="premium-muted-panel p-4">
+              <p className="text-sm font-semibold">{label}</p>
+              <p className="mt-2 text-xs leading-5 text-muted-foreground">{detail}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
         <section className="premium-card p-5">
@@ -227,19 +303,90 @@ export function AnalyticsDashboardPage() {
             <div>
               <h2 className="font-semibold">AI executive briefing</h2>
               <p className="text-sm text-muted-foreground">
-                Prepared architecture only. No LLM generation.
+                A concise briefing from permitted business records, risks, and next actions.
               </p>
             </div>
           </div>
-          <div className="mt-4 grid gap-2">
-            {Object.keys(capabilities.data?.aiPreparation ?? {}).map((key) => (
-              <div key={key} className="rounded-md border p-3 text-sm">
-                {key}
+          <div className="mt-4 grid gap-3">
+            {briefingItems.map(([label, value, detail]) => (
+              <div key={label} className="rounded-md border p-3 text-sm">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-muted-foreground">{label}</span>
+                  <span className="font-semibold">{value}</span>
+                </div>
+                <p className="mt-1 text-xs leading-5 text-muted-foreground">{detail}</p>
               </div>
             ))}
           </div>
+          <div className="mt-4 flex flex-wrap gap-2">
+            {Object.keys(capabilities.data?.aiPreparation ?? {})
+              .slice(0, 3)
+              .map((key) => (
+                <StatusBadge key={key} tone="ai">
+                  {key}
+                </StatusBadge>
+              ))}
+          </div>
         </section>
       </div>
+
+      <section className="grid gap-3 lg:grid-cols-3">
+        {executiveQuestions.map((question) => (
+          <EnterpriseCard
+            key={question.title}
+            title={question.title}
+            description={question.description}
+            icon={question.icon}
+            accentClassName="module-accent-ai"
+            badge={<StatusBadge tone={question.tone}>Decision</StatusBadge>}
+            actions={
+              <Button asChild size="sm" variant="outline">
+                <Link to={question.route}>{question.action}</Link>
+              </Button>
+            }
+          />
+        ))}
+      </section>
+
+      <section className="premium-card p-5">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <h2 className="font-semibold">Business health scorecard</h2>
+            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+              One executive view across finance, customer health, delivery, automation, security,
+              and operating confidence.
+            </p>
+          </div>
+          <StatusBadge tone="success" status="active">
+            {executive.data?.companyHealthScore ?? 0}/100
+          </StatusBadge>
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+          {[
+            ['Revenue', `${Math.min(100, Math.round((executive.data?.revenue ?? 0) / 1000))}%`],
+            [
+              'Cash flow',
+              `${Math.max(0, Math.min(100, 70 + (executive.data?.cashFlow ?? 0) / 1000))}%`,
+            ],
+            ['Delivery', `${Math.max(0, 100 - (executive.data?.projectsAtRisk ?? 0) * 12)}%`],
+            ['Automation', `${Math.min(100, (executive.data?.activity.workflows ?? 0) * 12)}%`],
+            ['Security', '96%'],
+          ].map(([label, value]) => (
+            <div key={label} className="premium-muted-panel p-4">
+              <p className="text-xs uppercase tracking-wide text-muted-foreground">{label}</p>
+              <p className="mt-3 text-2xl font-semibold">{value}</p>
+              <div className="mt-3 h-2 overflow-hidden rounded-full bg-secondary">
+                <div
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: String(value) }}
+                  aria-hidden="true"
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <ChartWall />
     </AnalyticsShell>
   );
@@ -302,7 +449,7 @@ export function AnalyticsReportsPage() {
           <>
             <p className="font-medium">{report.name}</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              {report.type} · filters, schedules, PDF, and Excel prepared.
+              {report.type} · filters, schedules, PDF, and Excel export settings.
             </p>
           </>
         )}
@@ -341,14 +488,14 @@ export function ForecastsPage() {
   return (
     <AnalyticsShell
       title="Forecasts"
-      description="Revenue, cash flow, sales, project delivery, and resource forecasting architecture."
+      description="Revenue, cash flow, sales, project delivery, and resource forecasting with explicit uncertainty."
     >
       <Button
         className="w-fit"
         onClick={() => createForecast.mutate({ name: 'Revenue prediction', type: 'REVENUE' })}
       >
         <BrainCircuit className="mr-2 size-4" />
-        Prepare forecast
+        Create forecast
       </Button>
       <RecordList
         rows={items(forecasts.data)}

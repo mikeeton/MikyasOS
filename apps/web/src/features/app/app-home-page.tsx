@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  ArrowRight,
   ArrowUpRight,
   Bot,
   Building2,
@@ -9,14 +10,19 @@ import {
   Clock3,
   CreditCard,
   FileText,
+  GitBranch,
   HeartPulse,
+  MessageSquareText,
+  Network,
   Plus,
+  Receipt,
   Settings,
   ShieldCheck,
   Sparkles,
   Star,
   Target,
   UsersRound,
+  Workflow,
 } from 'lucide-react';
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router';
@@ -80,8 +86,103 @@ const operatingPillars = [
   },
 ] as const;
 
+const businessGraphNodes = [
+  {
+    label: 'Customer',
+    detail: 'Relationships and history',
+    route: '/app/crm',
+    icon: UsersRound,
+    accent: 'module-accent-crm',
+  },
+  {
+    label: 'Project',
+    detail: 'Delivery and risk',
+    route: '/app/projects',
+    icon: Target,
+    accent: 'module-accent-projects',
+  },
+  {
+    label: 'Task',
+    detail: 'Next action',
+    route: '/app/tasks',
+    icon: CheckCircle2,
+    accent: 'module-accent-projects',
+  },
+  {
+    label: 'Invoice',
+    detail: 'Revenue impact',
+    route: '/app/finance',
+    icon: Receipt,
+    accent: 'module-accent-finance',
+  },
+  {
+    label: 'Meeting',
+    detail: 'Decisions and follow-up',
+    route: '/app/meetings',
+    icon: MessageSquareText,
+    accent: 'module-accent-calendar',
+  },
+  {
+    label: 'Document',
+    detail: 'Business memory',
+    route: '/app/documents',
+    icon: FileText,
+    accent: 'module-accent-documents',
+  },
+  {
+    label: 'Automation',
+    detail: 'Repeatable workflow',
+    route: '/app/automation',
+    icon: Workflow,
+    accent: 'module-accent-automation',
+  },
+  {
+    label: 'AI',
+    detail: 'Context and recommendations',
+    route: '/app/ai',
+    icon: Bot,
+    accent: 'module-accent-ai',
+  },
+] as const;
+
+const ecosystemActions = [
+  {
+    title: 'Customer to delivery',
+    description: 'Open a customer, start the project, connect tasks, and keep follow-up visible.',
+    route: '/app/crm',
+    action: 'Open CRM',
+    icon: UsersRound,
+    tone: 'success',
+  },
+  {
+    title: 'Work to money',
+    description: 'Move from completed delivery to invoice review with project context preserved.',
+    route: '/app/finance',
+    action: 'Review finance',
+    icon: Receipt,
+    tone: 'info',
+  },
+  {
+    title: 'Knowledge to action',
+    description: 'Use documents, notes, and activity to decide the next task or meeting.',
+    route: '/app/documents',
+    action: 'Open knowledge',
+    icon: GitBranch,
+    tone: 'ai',
+  },
+  {
+    title: 'Signals to automation',
+    description: 'Turn repeated handoffs into workflows with audit, ownership, and safe execution.',
+    route: '/app/automation',
+    action: 'Open automation',
+    icon: Workflow,
+    tone: 'warning',
+  },
+] as const;
+
 const defaultCollapsedWidgets: Record<string, boolean> = {
   operatingLayer: false,
+  businessGraph: false,
   priorities: false,
   briefing: false,
   pinnedApps: false,
@@ -231,15 +332,15 @@ export function AppHomePage() {
   }, [currentOrganisation?.id, trackEvent]);
 
   return (
-    <section className="grid gap-6">
-      <div className="premium-section project-ai-card overflow-hidden p-5 sm:p-6">
+    <section className="grid gap-5">
+      <div className="premium-section premium-hero project-ai-card overflow-hidden p-5 sm:p-6">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <StatusBadge tone="success" status="active">
               <span className="size-1.5 rounded-full bg-current" aria-hidden="true" />
               {currentOrganisation?.name ?? 'Workspace'}
             </StatusBadge>
-            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">
+            <h2 className="mt-2 text-2xl font-semibold tracking-tight sm:text-4xl">
               Mission Control
             </h2>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -276,14 +377,14 @@ export function AppHomePage() {
 
       {isDashboardLoading && <DashboardSkeleton />}
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {businessSignals.map((signal) => {
           const Icon = signal.icon;
           return (
             <Link
               key={signal.label}
               to={signal.route}
-              className="premium-interactive premium-section block p-4"
+              className="premium-interactive premium-section block p-4 hover:border-foreground/20"
             >
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -320,7 +421,7 @@ export function AppHomePage() {
           </Button>
         }
       >
-        <div className="mt-4 grid gap-3 md:grid-cols-5">
+        <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
           {operatingPillars.map((pillar) => {
             const Icon = pillar.icon;
             return (
@@ -337,6 +438,74 @@ export function AppHomePage() {
               </Link>
             );
           })}
+        </div>
+      </DashboardWidget>
+
+      <DashboardWidget
+        id="businessGraph"
+        title="Connected business graph"
+        description="A live map of how customers, delivery, revenue, knowledge, automation, and AI stay connected."
+        collapsed={Boolean(collapsedWidgets.businessGraph)}
+        onToggle={toggleWidget}
+        icon={<Network className="size-4 text-muted-foreground" aria-hidden="true" />}
+        action={
+          <Button asChild variant="outline" size="sm">
+            <Link to="/app/search">Search everything</Link>
+          </Button>
+        }
+      >
+        <div className="mt-4">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {businessGraphNodes.map((node, index) => {
+              const Icon = node.icon;
+              return (
+                <div key={node.label} className="group relative">
+                  <Link
+                    to={node.route}
+                    className={cn(
+                      'premium-interactive premium-design-card flex min-h-32 h-full flex-col justify-between',
+                      node.accent,
+                    )}
+                  >
+                    <div>
+                      <span className="module-accent-mark grid size-9 place-items-center rounded-md border">
+                        <Icon className="size-4" aria-hidden="true" />
+                      </span>
+                      <p className="mt-4 text-sm font-semibold">{node.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-muted-foreground">{node.detail}</p>
+                    </div>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs font-medium text-muted-foreground transition group-hover:text-foreground">
+                      Open
+                      <ArrowRight className="size-3.5" aria-hidden="true" />
+                    </span>
+                  </Link>
+                  {index < businessGraphNodes.length - 1 && (
+                    <ArrowRight
+                      className="pointer-events-none absolute -right-2 top-1/2 z-10 hidden size-4 -translate-y-1/2 rounded-full border bg-background p-0.5 text-muted-foreground shadow-sm lg:block"
+                      aria-hidden="true"
+                    />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="mt-4 grid gap-3 lg:grid-cols-4">
+          {ecosystemActions.map((item) => (
+            <EnterpriseCard
+              key={item.title}
+              title={item.title}
+              description={item.description}
+              icon={item.icon}
+              accentClassName="module-accent-ai"
+              badge={<StatusBadge tone={item.tone}>Connected</StatusBadge>}
+              actions={
+                <Button asChild size="sm" variant="outline">
+                  <Link to={item.route}>{item.action}</Link>
+                </Button>
+              }
+            />
+          ))}
         </div>
       </DashboardWidget>
 
@@ -458,13 +627,13 @@ export function AppHomePage() {
                   <Icon className="size-5 text-muted-foreground" aria-hidden="true" />
                   <p className="mt-4 font-medium">{item.title}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {item.disabled ? 'Placeholder ready' : 'Open workspace'}
+                    {item.disabled ? 'Restricted in this workspace' : 'Open workspace'}
                   </p>
                 </div>
               );
 
               return item.disabled ? (
-                <div key={item.title} aria-label={`${item.title} coming soon`}>
+                <div key={item.title} aria-label={`${item.title} unavailable`}>
                   {content}
                 </div>
               ) : (

@@ -21,6 +21,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "verify:bounded": "node scripts/verify-bounded.mjs",
+    "audit:product": "node scripts/product-quality-audit.mjs",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "smoke:e2e": "node scripts/live-smoke-e2e.mjs",
